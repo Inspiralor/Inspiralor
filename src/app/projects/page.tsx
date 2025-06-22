@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 const categories = [
   "All",
@@ -32,6 +33,7 @@ type Project = {
   category: string;
   tags: string[];
   status: string;
+  files?: { name: string; url: string }[];
 };
 
 function ProjectCard({
@@ -41,13 +43,22 @@ function ProjectCard({
   project: Project;
   delay?: number;
 }) {
+  // Find first image file
+  const imageFile = project.files?.find(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, type: "spring" }}
-      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-2 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
+      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-3 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
     >
+      {imageFile && (
+        <div className="w-full flex justify-center mb-2">
+          <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
+            <Image src={imageFile.url} alt={imageFile.name} width={112} height={112} className="object-cover w-full h-full" />
+          </div>
+        </div>
+      )}
       <Link
         href={`/projects/${project.id}`}
         className="text-xl font-bold text-primary hover:text-accent hover:underline transition-colors"

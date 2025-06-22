@@ -7,8 +7,17 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#6C63FF",
-        accent: "#FF6584",
+        primary: "#1a2540",
+        accent: "#e1e0c8",
+        secondary: "#5f6f7f",
+        tertiary: "#8897a1",
+        highlight: "#f9f3c6",
+        olive: "#6a6c60",
+        dark: "#414c59",
+        bluegray: "#485d66",
+        navy: "#142238",
+        pale: "#7f8aa5",
+        gold: "#948463",
         background: "#18181B",
         surface: "#232336",
         card: "#232336",

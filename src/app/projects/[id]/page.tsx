@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 type Project = {
   id: string;
@@ -102,19 +103,27 @@ export default function ProjectDetailPage() {
         {project.files?.length > 0 && (
           <div className="mb-4">
             <strong className="text-primary">Files:</strong>
-            <ul className="list-disc ml-6">
-              {project.files.map((file, i) => (
-                <li key={i}>
-                  <a
-                    href={file.url}
-                    className="text-accent underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {file.name}
-                  </a>
-                </li>
-              ))}
+            <ul className="list-disc ml-6 flex flex-col gap-3 mt-2">
+              {project.files.map((file, i) => {
+                const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name);
+                return (
+                  <li key={i} className="flex items-center gap-4">
+                    {isImage ? (
+                      <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
+                        <Image src={file.url} alt={file.name} width={128} height={128} className="object-cover w-full h-full" />
+                      </div>
+                    ) : null}
+                    <a
+                      href={file.url}
+                      className="text-accent underline text-lg font-semibold hover:text-gold transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {file.name}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

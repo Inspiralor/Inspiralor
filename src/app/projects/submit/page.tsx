@@ -134,85 +134,89 @@ export default function SubmitProjectPage() {
     <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4">
       <motion.form
         onSubmit={handleSubmit}
-        className="w-full max-w-xl rounded-xl bg-glass shadow-glass p-8 flex flex-col gap-5 border border-border backdrop-blur-md"
+        className="w-full max-w-xl rounded-xl bg-glass shadow-glass p-10 flex flex-col gap-8 border border-gold backdrop-blur-md"
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
       >
-        <h1 className="text-3xl font-bold mb-2 text-primary font-display">
+        <h1 className="text-3xl font-extrabold mb-4 text-primary font-display text-center drop-shadow-lg">
           Submit an Abandoned Project
         </h1>
-        <input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none"
-          required
-        />
-        <textarea
-          placeholder="Description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none"
-          required
-        />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Tools or Medium Used"
-          value={tools}
-          onChange={(e) => setTools(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted"
-        />
-        <textarea
-          placeholder="Why was it abandoned?"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted"
-        />
-        <input
-          type="text"
-          placeholder="Tags (comma separated)"
-          value={tags}
-          onChange={(e) => setTags(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted"
-        />
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-        >
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <input
-          type="text"
-          placeholder="Links (comma separated URLs)"
-          value={links}
-          onChange={(e) => setLinks(e.target.value)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted"
-        />
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
-          onChange={(e) => setFiles(e.target.files)}
-          className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-        />
+        <div className="flex flex-col gap-6">
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none text-lg"
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none text-lg min-h-[100px]"
+            required
+          />
+          <div className="flex flex-col md:flex-row gap-6">
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white flex-1"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white flex-1"
+            >
+              {statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input
+            type="text"
+            placeholder="Tools or Medium Used"
+            value={tools}
+            onChange={(e) => setTools(e.target.value)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted text-lg"
+          />
+          <textarea
+            placeholder="Why was it abandoned?"
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted text-lg min-h-[80px]"
+          />
+          <input
+            type="text"
+            placeholder="Tags (comma separated)"
+            value={tags}
+            onChange={(e) => setTags(e.target.value)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted text-lg"
+          />
+          <input
+            type="text"
+            placeholder="Links (comma separated URLs)"
+            value={links}
+            onChange={(e) => setLinks(e.target.value)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted text-lg"
+          />
+          <input
+            type="file"
+            multiple
+            ref={fileInputRef}
+            onChange={(e) => setFiles(e.target.files)}
+            className="border border-gold bg-surface/60 rounded-xl px-6 py-4 text-white text-lg"
+          />
+        </div>
         {error && (
           <div className="text-red-500 font-semibold text-sm">{error}</div>
         )}
@@ -221,7 +225,7 @@ export default function SubmitProjectPage() {
         )}
         <motion.button
           type="submit"
-          className="mt-2 bg-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent transition-colors disabled:opacity-50"
+          className="mt-4 bg-primary text-accent px-8 py-4 rounded-xl font-bold shadow-lg hover:bg-gold hover:text-primary transition-colors disabled:opacity-50 text-lg"
           whileTap={{ scale: 0.97 }}
           whileHover={{ scale: 1.03 }}
           disabled={loading}

@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SparklesIcon } from "@heroicons/react/24/solid";
+import Image from "next/image";
 
 function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
   return (
@@ -34,133 +35,100 @@ function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
 }
 
 export default function Home() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [adoptedProjects, setAdoptedProjects] = useState(0);
+  const [remixedProjects, setRemixedProjects] = useState(0);
   useEffect(() => {
-    const fetchProjects = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (!error && data) setProjects(data);
-      setLoading(false);
+    const fetchStats = async () => {
+      const { count: total } = await supabase.from("projects").select("id", { count: "exact", head: true });
+      setTotalProjects(total || 0);
+      const { count: adopted } = await supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "Adopted");
+      setAdoptedProjects(adopted || 0);
+      const { count: remixed } = await supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "Remixed");
+      setRemixedProjects(remixed || 0);
     };
-    fetchProjects();
+    fetchStats();
   }, []);
-
-  // Curated views (simple demo logic)
-  const mostInteresting = projects.slice(0, 3);
-  const mostAdopted = projects.slice(3, 6); // Placeholder logic
-  const hiddenGems = projects.slice(6, 9); // Placeholder logic
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
-      <section className="max-w-4xl mx-auto pt-16 pb-12 px-4 text-center">
+    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20 w-full">
+      <div className="flex flex-col md:flex-row w-full h-full min-h-[60vh] gap-4 md:gap-x-8 px-4 md:px-32">
+        {/* Left: Slogan, text */}
+        <div className="flex-1 flex flex-col justify-start md:justify-center py-16 gap-8">
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-4xl md:text-6xl font-extrabold font-display text-highlight drop-shadow-lg mb-4 text-left"
+          >
+            Adopt, Remix, and Revive Unfinished Ideas
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="text-lg text-accent max-w-2xl mb-2 text-left"
+          >
+            Project Graveyard is a platform dedicated to breathing new life into unfinished, abandoned, or forgotten projects. Whether you are a developer, artist, writer, designer, or innovator, our mission is to connect creative minds and foster a culture of collaboration and reinvention. By sharing your incomplete works, you open the door for others to learn from, build upon, or transform your ideas into something extraordinary. We believe that every project, no matter how incomplete, has the potential to inspire and spark new journeys.
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="text-lg text-accent max-w-2xl text-left"
+          >
+            Our platform offers a seamless experience for uploading and discovering projects, complete with rich media, detailed descriptions, and tagging. Users can create personalized profiles, showcase their interests, and link their social accounts to connect with like-minded creators. The adoption and remixing features empower users to take ownership of projects, contribute improvements, or spin off entirely new works. Join our growing community to collaborate, learn, and make an impact by giving unfinished ideas a second chance.
+          </motion.p>
+        </div>
+        {/* Right: Hero image */}
+        <div className="flex-1 flex items-start md:items-center justify-center py-16">
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            className="w-full max-w-[500px] h-auto rounded-2xl overflow-hidden border-4 border-gold shadow-xl bg-surface"
+          >
+            <Image
+              src="/images/Image1.jpg"
+              alt="Hero Image"
+              width={500}
+              height={340}
+              className="w-full h-auto object-cover object-center"
+              priority
+            />
+          </motion.div>
+        </div>
+      </div>
+      {/* Stats row */}
+      <section className="w-full flex flex-col md:flex-row gap-8 mt-8 px-4 md:px-32">
         <motion.div
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="inline-flex items-center gap-2 mb-4 px-4 py-2 rounded-full bg-glass shadow-glass border border-border backdrop-blur-md"
-        >
-          <SparklesIcon className="w-6 h-6 text-accent animate-pulse" />
-          <span className="font-display text-lg text-primary font-semibold tracking-wide">
-            Project Graveyard
-          </span>
-        </motion.div>
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.8 }}
-          className="text-5xl md:text-6xl font-extrabold font-display bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-4"
-        >
-          Adopt, Remix, and Revive Unfinished Ideas
-        </motion.h1>
-        <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8 }}
-          className="mb-8 text-lg text-muted max-w-2xl mx-auto"
+          className="flex-1 bg-glass border border-gold rounded-xl px-8 py-8 text-center shadow-lg min-w-[220px]"
         >
-          A creative adoption hub for unfinished projects in code, art, writing,
-          research, games, designs, inventions, and more. Discover, adopt, and
-          remix abandoned works from all fields.
-        </motion.p>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          className="flex justify-center gap-4"
-        >
-          <Link
-            href="/projects"
-            className="px-6 py-3 rounded-xl bg-primary text-white font-bold shadow-lg hover:bg-accent transition-colors"
-          >
-            Browse Projects
-          </Link>
-          <Link
-            href="/projects/submit"
-            className="px-6 py-3 rounded-xl bg-glass border border-primary text-primary font-bold shadow-lg hover:bg-primary hover:text-white transition-colors"
-          >
-            Submit Project
-          </Link>
-        </motion.div>
-      </section>
-      <section className="max-w-5xl mx-auto px-4 grid md:grid-cols-3 gap-8 mt-12">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h2 className="text-2xl font-semibold mb-3 text-primary">
-            Most Interesting
-          </h2>
-          <div className="grid gap-4">
-            {loading ? (
-              <div>Loading...</div>
-            ) : (
-              mostInteresting.map((p, i) => (
-                <ProjectCard key={p.id} project={p} delay={0.1 * i} />
-              ))
-            )}
-          </div>
+          <div className="text-4xl font-bold text-gold mb-2">{totalProjects}</div>
+          <div className="text-xl text-accent font-semibold">Total Projects</div>
+          <div className="text-md text-muted mt-2 max-w-xs mx-auto">A growing collection of creative works from all disciplines, waiting to be adopted, remixed, or completed. Every project is an opportunity for learning, collaboration, and innovation.</div>
         </motion.div>
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
+          className="flex-1 bg-glass border border-gold rounded-xl px-8 py-8 text-center shadow-lg min-w-[220px]"
         >
-          <h2 className="text-2xl font-semibold mb-3 text-accent">
-            Most Adopted
-          </h2>
-          <div className="grid gap-4">
-            {loading ? (
-              <div>Loading...</div>
-            ) : (
-              mostAdopted.map((p, i) => (
-                <ProjectCard key={p.id} project={p} delay={0.1 * i} />
-              ))
-            )}
-          </div>
+          <div className="text-4xl font-bold text-gold mb-2">{adoptedProjects}</div>
+          <div className="text-xl text-accent font-semibold">Adopted Projects</div>
+          <div className="text-md text-muted mt-2 max-w-xs mx-auto">Projects that have found new owners and are on their way to completion or transformation. Adopting a project is a great way to contribute, learn, and make a difference in the community.</div>
         </motion.div>
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+          className="flex-1 bg-glass border border-gold rounded-xl px-8 py-8 text-center shadow-lg min-w-[220px]"
         >
-          <h2 className="text-2xl font-semibold mb-3 text-primary">
-            Hidden Gems
-          </h2>
-          <div className="grid gap-4">
-            {loading ? (
-              <div>Loading...</div>
-            ) : (
-              hiddenGems.map((p, i) => (
-                <ProjectCard key={p.id} project={p} delay={0.1 * i} />
-              ))
-            )}
-          </div>
+          <div className="text-4xl font-bold text-gold mb-2">{remixedProjects}</div>
+          <div className="text-xl text-accent font-semibold">Remixed Projects</div>
+          <div className="text-md text-muted mt-2 max-w-xs mx-auto">Projects that have been reimagined, extended, or transformed into something new. Remixing is at the heart of creative evolution and cross-disciplinary innovation.</div>
         </motion.div>
       </section>
     </main>
