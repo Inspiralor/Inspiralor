@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 const categories = [
   "All",
@@ -45,6 +46,47 @@ function ProjectCard({
 }) {
   // Find first image file
   const imageFile = project.files?.find(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
+  const [user, setUser] = useState<any>(null);
+  const [favourites, setFavourites] = useState<string[]>([]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+  }, []);
+
+  useEffect(() => {
+    const fetchFavourites = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("favourites")
+        .select("project_id")
+        .eq("user_id", user.id);
+      setFavourites((data || []).map((f: any) => f.project_id));
+    };
+    fetchFavourites();
+  }, [user]);
+
+  const toggleFavourite = async (projectId: string) => {
+    if (!user) return;
+    if (favourites.includes(projectId)) {
+      // Unfavourite
+      await supabase
+        .from("favourites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("project_id", projectId);
+      setFavourites(favourites.filter((id) => id !== projectId));
+    } else {
+      // Favourite
+      await supabase
+        .from("favourites")
+        .insert([{ user_id: user.id, project_id: projectId }]);
+      setFavourites([...favourites, projectId]);
+    }
+  };
+
+  const isFavourited = favourites.includes(project.id);
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -59,12 +101,23 @@ function ProjectCard({
           </div>
         </div>
       )}
-      <Link
-        href={`/projects/${project.id}`}
-        className="text-xl font-bold text-primary hover:text-accent hover:underline transition-colors"
-      >
-        {project.title}
-      </Link>
+      <div className="flex items-center justify-between">
+        <Link
+          href={`/projects/${project.id}`}
+          className="text-xl font-bold text-primary hover:text-accent hover:underline transition-colors"
+        >
+          {project.title}
+        </Link>
+        {user && (
+          <button
+            onClick={() => toggleFavourite(project.id)}
+            className="ml-2 text-gold hover:text-red-500 text-2xl focus:outline-none"
+            title={isFavourited ? "Unfavourite" : "Favourite"}
+          >
+            {isFavourited ? <FaHeart /> : <FaRegHeart />}
+          </button>
+        )}
+      </div>
       <div className="text-sm text-muted">{project.category}</div>
       <div className="text-gray-200 line-clamp-2">{project.description}</div>
       <div className="flex gap-2 flex-wrap text-xs mt-2">

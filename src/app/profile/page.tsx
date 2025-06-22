@@ -21,11 +21,12 @@ type Profile = {
   interests: string;
   portfolio_links: string[];
   profile_image: string | null;
-  github: string;
-  linkedin: string;
-  instagram: string;
-  x: string;
-  facebook: string;
+  github?: string;
+  linkedin?: string;
+  instagram?: string;
+  x?: string;
+  facebook?: string;
+  [key: string]: string | string[] | null | undefined;
 };
 
 const SOCIALS = [
@@ -41,6 +42,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posted, setPosted] = useState<Project[]>([]);
   const [adopted, setAdopted] = useState<Project[]>([]);
+  const [favourited, setFavourited] = useState<Project[]>([]);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
   const [bio, setBio] = useState("");
@@ -48,7 +50,7 @@ export default function ProfilePage() {
   const [links, setLinks] = useState("");
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [socials, setSocials] = useState({ github: "", linkedin: "", instagram: "", x: "", facebook: "" });
+  const [socials, setSocials] = useState<{ [key: string]: string }>({ github: "", linkedin: "", instagram: "", x: "", facebook: "" });
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -93,6 +95,21 @@ export default function ProfilePage() {
         .select("id, title, category, status")
         .eq("creator_id", user.id);
       setPosted(posted || []);
+      // Fetch favourited project ids
+      const { data: favs } = await supabase
+        .from("favourites")
+        .select("project_id")
+        .eq("user_id", user.id);
+      if (favs && favs.length > 0) {
+        const ids = favs.map(f => f.project_id);
+        const { data: favProjects } = await supabase
+          .from("projects")
+          .select("id, title, category, status")
+          .in("id", ids);
+        setFavourited(favProjects || []);
+      } else {
+        setFavourited([]);
+      }
       // Fetch adopted projects (placeholder: none yet)
       setAdopted([]);
       setLoading(false);
@@ -144,6 +161,13 @@ export default function ProfilePage() {
       profile_image: profileImage,
       ...socials,
     });
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!user) return;
+    if (!confirm("Are you sure you want to delete this project?")) return;
+    await supabase.from("projects").delete().eq("id", projectId);
+    setPosted(posted.filter(p => p.id !== projectId));
   };
 
   if (loading)
@@ -220,7 +244,7 @@ export default function ProfilePage() {
                       <Icon className="w-6 h-6 text-gold" />
                       <input
                         type="url"
-                        value={socials[key]}
+                        value={socials[key] || ""}
                         onChange={e => setSocials(s => ({ ...s, [key]: e.target.value }))}
                         placeholder={label + " URL"}
                         className="flex-1 border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted"
@@ -282,10 +306,10 @@ export default function ProfilePage() {
                 </div>
                 <div className="flex flex-wrap gap-4 mt-2">
                   {SOCIALS.map(({ key, label, icon: Icon }) =>
-                    profile?.[key] ? (
+                    profile && (profile[key] as string) ? (
                       <a
                         key={key}
-                        href={profile[key]}
+                        href={profile[key] as string}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
@@ -308,15 +332,54 @@ export default function ProfilePage() {
             </motion.button>
           </div>
         )}
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold mb-2 text-primary">
             Posted Projects
           </h2>
+          <Link href="/my-projects" className="text-accent underline text-sm">My Projects Page</Link>
+        </div>
+        <div className="mb-6">
           {posted.length === 0 ? (
             <div className="text-muted">No posted projects.</div>
           ) : (
             <ul className="list-disc ml-6">
               {posted.map((p) => (
+                <li key={p.id} className="flex items-center gap-2">
+                  <Link
+                    href={`/projects/${p.id}`}
+                    className="text-accent underline"
+                  >
+                    {p.title}
+                  </Link>{" "}
+                  <span className="text-xs text-muted">
+                    ({p.category}, {p.status})
+                  </span>
+                  <button
+                    className="ml-2 px-2 py-1 text-xs bg-blue-700 text-white rounded hover:bg-blue-800"
+                    onClick={() => alert('Edit coming soon!')}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="ml-2 px-2 py-1 text-xs bg-red-700 text-white rounded hover:bg-red-800"
+                    onClick={() => handleDeleteProject(p.id)}
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2 text-primary">
+            Favourited Projects
+          </h2>
+          {favourited.length === 0 ? (
+            <div className="text-muted">No favourited projects yet.</div>
+          ) : (
+            <ul className="list-disc ml-6">
+              {favourited.map((p) => (
                 <li key={p.id}>
                   <Link
                     href={`/projects/${p.id}`}

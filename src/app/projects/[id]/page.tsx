@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
@@ -24,6 +24,8 @@ export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -39,12 +41,23 @@ export default function ProjectDetailPage() {
     if (id) fetchProject();
   }, [id]);
 
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
   if (loading)
     return <main className="max-w-2xl mx-auto py-10 px-4">Loading...</main>;
   if (!project)
     return (
       <main className="max-w-2xl mx-auto py-10 px-4">Project not found.</main>
     );
+
+  const handleDelete = async () => {
+    if (!project) return;
+    if (!confirm("Are you sure you want to delete this project?")) return;
+    await supabase.from("projects").delete().eq("id", project.id);
+    router.push("/projects");
+  };
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4">
@@ -142,6 +155,26 @@ export default function ProjectDetailPage() {
           >
             Remix / Continue
           </motion.button>
+          {user && project && user.id === project.creator_id && (
+            <>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.03 }}
+                className="bg-yellow-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-gold hover:text-primary transition-colors"
+                onClick={() => router.push(`/projects/${project.id}/edit`)}
+              >
+                Edit
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.03 }}
+                className="bg-red-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-red-900 transition-colors"
+                onClick={handleDelete}
+              >
+                Delete
+              </motion.button>
+            </>
+          )}
         </div>
         <div className="mt-10">
           <h2 className="text-xl font-semibold mb-2 text-primary">

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 const categories = [
@@ -26,7 +26,8 @@ type UploadedFile = {
   size: number;
 };
 
-export default function SubmitProjectPage() {
+export default function SubmitProjectPage({ isEdit = false }: { isEdit?: boolean }) {
+  const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState(categories[0]);
@@ -54,6 +55,26 @@ export default function SubmitProjectPage() {
       setCheckingAuth(false);
     });
   }, [router]);
+
+  useEffect(() => {
+    if (isEdit && id) {
+      const fetchProject = async () => {
+        const { data } = await supabase.from("projects").select("*").eq("id", id).single();
+        if (data) {
+          setTitle(data.title);
+          setDescription(data.description);
+          setCategory(data.category);
+          setTools(data.tools);
+          setReason(data.reason_abandoned);
+          setTags((data.tags || []).join(", "));
+          setStatus(data.status);
+          setLinks((data.links || []).join(", "));
+          // files: skip for now
+        }
+      };
+      fetchProject();
+    }
+  }, [isEdit, id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,8 +119,9 @@ export default function SubmitProjectPage() {
         });
       }
     }
-    const { error: insertError } = await supabase.from("projects").insert([
-      {
+    if (isEdit && id) {
+      // Update
+      const { error: updateError } = await supabase.from("projects").update({
         title,
         description,
         category,
@@ -108,16 +130,38 @@ export default function SubmitProjectPage() {
         tags: tagArr,
         status,
         links: linkArr,
-        files: uploadedFiles,
-        creator_id: user.id,
-      },
-    ]);
-    setLoading(false);
-    if (insertError) {
-      setError(insertError.message);
+        ...(uploadedFiles.length > 0 ? { files: uploadedFiles } : {}),
+      }).eq("id", id);
+      setLoading(false);
+      if (updateError) {
+        setError(updateError.message);
+      } else {
+        setSuccess("Project updated successfully!");
+        setTimeout(() => router.push(`/projects/${id}`), 1500);
+      }
     } else {
-      setSuccess("Project submitted successfully!");
-      setTimeout(() => router.push("/"), 1500);
+      // Insert (original logic)
+      const { error: insertError } = await supabase.from("projects").insert([
+        {
+          title,
+          description,
+          category,
+          tools,
+          reason_abandoned: reason,
+          tags: tagArr,
+          status,
+          links: linkArr,
+          files: uploadedFiles,
+          creator_id: user.id,
+        },
+      ]);
+      setLoading(false);
+      if (insertError) {
+        setError(insertError.message);
+      } else {
+        setSuccess("Project submitted successfully!");
+        setTimeout(() => router.push("/"), 1500);
+      }
     }
   };
 
