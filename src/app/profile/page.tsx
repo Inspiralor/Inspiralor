@@ -5,7 +5,13 @@ import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { FaGithub, FaLinkedin, FaInstagram, FaXTwitter, FaFacebook } from "react-icons/fa6";
+import {
+  FaGithub,
+  FaLinkedin,
+  FaInstagram,
+  FaXTwitter,
+  FaFacebook,
+} from "react-icons/fa6";
 
 type Project = {
   id: string;
@@ -50,7 +56,13 @@ export default function ProfilePage() {
   const [links, setLinks] = useState("");
   const [loading, setLoading] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [socials, setSocials] = useState<{ [key: string]: string }>({ github: "", linkedin: "", instagram: "", x: "", facebook: "" });
+  const [socials, setSocials] = useState<{ [key: string]: string }>({
+    github: "",
+    linkedin: "",
+    instagram: "",
+    x: "",
+    facebook: "",
+  });
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -69,12 +81,34 @@ export default function ProfilePage() {
         .single();
       if (!profile) {
         // Create empty profile if not exists
-        await supabase
-          .from("profiles")
-          .insert([
-            { id: user.id, name: "", bio: "", interests: "", portfolio_links: [], profile_image: null, github: "", linkedin: "", instagram: "", x: "", facebook: "" },
-          ]);
-        profile = { id: user.id, name: "", bio: "", interests: "", portfolio_links: [], profile_image: null, github: "", linkedin: "", instagram: "", x: "", facebook: "" };
+        await supabase.from("profiles").insert([
+          {
+            id: user.id,
+            name: "",
+            bio: "",
+            interests: "",
+            portfolio_links: [],
+            profile_image: null,
+            github: "",
+            linkedin: "",
+            instagram: "",
+            x: "",
+            facebook: "",
+          },
+        ]);
+        profile = {
+          id: user.id,
+          name: "",
+          bio: "",
+          interests: "",
+          portfolio_links: [],
+          profile_image: null,
+          github: "",
+          linkedin: "",
+          instagram: "",
+          x: "",
+          facebook: "",
+        };
       }
       setProfile(profile);
       setName(profile.name || "");
@@ -101,7 +135,7 @@ export default function ProfilePage() {
         .select("project_id")
         .eq("user_id", user.id);
       if (favs && favs.length > 0) {
-        const ids = favs.map(f => f.project_id);
+        const ids = favs.map((f) => f.project_id);
         const { data: favProjects } = await supabase
           .from("projects")
           .select("id, title, category, status")
@@ -122,21 +156,28 @@ export default function ProfilePage() {
     setUploading(true);
     const file = e.target.files[0];
     const filePath = `${user.id}/${file.name}`;
-    const { error } = await supabase.storage.from("profile-images").upload(filePath, file, { upsert: true });
+    const { error } = await supabase.storage
+      .from("profile-images")
+      .upload(filePath, file, { update: true });
     if (error) {
       setUploading(false);
       alert("Image upload failed: " + error.message);
       return;
     }
-    const { data } = supabase.storage.from("profile-images").getPublicUrl(filePath);
+    const { data } = supabase.storage
+      .from("profile-images")
+      .getPublicUrl(filePath);
     setProfileImage(data.publicUrl);
-    await supabase.from("profiles").update({ profile_image: data.publicUrl }).eq("id", user.id);
+    await supabase
+      .from("profiles")
+      .update({ profile_image: data.publicUrl })
+      .eq("id", user.id);
     setUploading(false);
   };
 
   const handleSave = async () => {
     if (!user) return;
-    await supabase.from("profiles").upsert({
+    await supabase.from("profiles").update({
       id: user.id,
       name,
       bio,
@@ -167,7 +208,7 @@ export default function ProfilePage() {
     if (!user) return;
     if (!confirm("Are you sure you want to delete this project?")) return;
     await supabase.from("projects").delete().eq("id", projectId);
-    setPosted(posted.filter(p => p.id !== projectId));
+    setPosted(posted.filter((p) => p.id !== projectId));
   };
 
   if (loading)
@@ -192,7 +233,7 @@ export default function ProfilePage() {
             <input
               type="text"
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               placeholder="Your Name"
               className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted text-3xl font-bold mb-2 w-full"
             />
@@ -211,7 +252,13 @@ export default function ProfilePage() {
                   className="rounded-full object-cover border-4 border-gold shadow-lg bg-white"
                 />
                 <label className="absolute bottom-2 right-2 bg-gold text-primary rounded-full px-3 py-1 text-xs font-bold cursor-pointer shadow-md border border-dark">
-                  <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                  />
                   {uploading ? "Uploading..." : "Change"}
                 </label>
               </div>
@@ -245,7 +292,9 @@ export default function ProfilePage() {
                       <input
                         type="url"
                         value={socials[key] || ""}
-                        onChange={e => setSocials(s => ({ ...s, [key]: e.target.value }))}
+                        onChange={(e) =>
+                          setSocials((s) => ({ ...s, [key]: e.target.value }))
+                        }
                         placeholder={label + " URL"}
                         className="flex-1 border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted"
                       />
@@ -315,7 +364,9 @@ export default function ProfilePage() {
                         className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
                       >
                         <Icon className="w-5 h-5" />
-                        <span className="hidden md:inline font-semibold text-sm">{label}</span>
+                        <span className="hidden md:inline font-semibold text-sm">
+                          {label}
+                        </span>
                       </a>
                     ) : null
                   )}
@@ -336,7 +387,9 @@ export default function ProfilePage() {
           <h2 className="text-xl font-semibold mb-2 text-primary">
             Posted Projects
           </h2>
-          <Link href="/my-projects" className="text-accent underline text-sm">My Projects Page</Link>
+          <Link href="/my-projects" className="text-accent underline text-sm">
+            My Projects Page
+          </Link>
         </div>
         <div className="mb-6">
           {posted.length === 0 ? (
@@ -356,7 +409,7 @@ export default function ProfilePage() {
                   </span>
                   <button
                     className="ml-2 px-2 py-1 text-xs bg-blue-700 text-white rounded hover:bg-blue-800"
-                    onClick={() => alert('Edit coming soon!')}
+                    onClick={() => alert("Edit coming soon!")}
                   >
                     Edit
                   </button>
