@@ -13,6 +13,7 @@ import {
   FaFacebook,
 } from "react-icons/fa6";
 import { data } from "framer-motion/client";
+import { nanoid } from "nanoid";
 
 type Project = {
   id: string;
@@ -82,9 +83,11 @@ export default function ProfilePage() {
         .single();
       if (!profile) {
         // Create empty profile if not exists
+        const unique_id = nanoid(8);
         await supabase.from("profiles").insert([
           {
             id: user.id,
+            unique_id,
             name: "",
             bio: "",
             interests: "",
@@ -99,6 +102,7 @@ export default function ProfilePage() {
         ]);
         profile = {
           id: user.id,
+          unique_id,
           name: "",
           bio: "",
           interests: "",
