@@ -178,18 +178,24 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user) return;
-    await supabase.from("profiles").update({
-      id: user.id,
-      name,
-      bio,
-      interests,
-      portfolio_links: links
-        .split(",")
-        .map((l) => l.trim())
-        .filter(Boolean),
-      profile_image: profileImage,
-      ...socials,
-    });
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        name,
+        bio,
+        interests,
+        portfolio_links: links
+          .split(",")
+          .map((l) => l.trim())
+          .filter(Boolean),
+        profile_image: profileImage,
+        ...socials,
+      })
+      .eq("id", user.id);
+    if (error) {
+      alert("Failed to update profile: " + error.message);
+      return;
+    }
     setEditing(false);
     setProfile({
       id: user.id,
@@ -245,7 +251,7 @@ export default function ProfilePage() {
           <div className="flex-1 flex flex-col gap-3 text-lg">
             <div className="flex flex-col md:flex-row md:items-center gap-2">
               <span className="text-3xl font-bold text-primary font-display">
-                {name || "Profile"}
+                {profile?.name ? profile.name : "Profile"}
               </span>
               <span className="ml-4 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold text-sm font-mono">
                 ID: {profile?.unique_id || user?.id?.slice(0, 8)}
@@ -304,7 +310,7 @@ export default function ProfilePage() {
         </div>
         {editing ? (
           <div className="mb-10 flex flex-col gap-6">
-            <div className="flex flex-col md:flex-row gap-8 items-center mb-4">
+            <div className="flex flex-col items-center mb-4 gap-4">
               <div className="relative w-32 h-32">
                 <Image
                   src={profileImage || "/images/Icon.jpeg"}
@@ -323,21 +329,25 @@ export default function ProfilePage() {
                   {uploading ? "Uploading..." : "Change"}
                 </label>
               </div>
-              <div className="flex-1 flex flex-col gap-4">
-                <textarea
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  placeholder="Short bio"
-                  className="border border-border bg-surface/60 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none min-h-[80px]"
-                />
-                <input
-                  value={interests}
-                  onChange={(e) => setInterests(e.target.value)}
-                  placeholder="Areas of interest"
-                  className="border border-border bg-surface/60 rounded-xl px-4 py-3 text-white placeholder:text-muted"
-                />
-              </div>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+                className="border border-border bg-surface/60 rounded-xl px-4 py-3 text-white placeholder:text-muted text-2xl font-bold text-center w-full max-w-xs"
+              />
             </div>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Short bio"
+              className="border border-border bg-surface/60 rounded-xl px-4 py-3 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none min-h-[80px]"
+            />
+            <input
+              value={interests}
+              onChange={(e) => setInterests(e.target.value)}
+              placeholder="Areas of interest"
+              className="border border-border bg-surface/60 rounded-xl px-4 py-3 text-white placeholder:text-muted"
+            />
             <div className="flex flex-col gap-4 md:flex-row md:gap-8">
               <div className="flex-1 flex flex-col gap-4">
                 <input
