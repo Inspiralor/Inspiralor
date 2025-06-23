@@ -43,12 +43,24 @@ export default function Navbar() {
       className="sticky top-0 z-30 bg-gradient-to-r from-primary via-bluegray to-secondary/80 backdrop-blur-lg shadow-glass border-b border-gold px-10 py-6 flex gap-10 items-center min-h-[90px]"
     >
       <div className="flex items-center gap-4">
-        <Image src="/images/Icon.jpeg" alt="Logo" width={56} height={56} className="rounded-full border-4 border-gold shadow-lg bg-white" />
-        <Link href="/" className="font-extrabold text-3xl md:text-4xl text-accent font-display tracking-wide drop-shadow-lg focus:outline-none">
+        <Image
+          src="/images/Icon.jpeg"
+          alt="Logo"
+          width={56}
+          height={56}
+          className="rounded-full border-4 border-gold shadow-lg bg-white"
+        />
+        <Link
+          href="/"
+          className="font-extrabold text-3xl md:text-4xl text-accent font-display tracking-wide drop-shadow-lg focus:outline-none"
+        >
           Project Graveyard
         </Link>
       </div>
-      <Link href="/projects" className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20">
+      <Link
+        href="/projects"
+        className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
+      >
         All Projects
       </Link>
       <Link
@@ -60,8 +72,23 @@ export default function Navbar() {
       <div className="flex-1" />
       {user ? (
         <>
-          <Link href="/profile" className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20">
+          <Link
+            href="/my-projects"
+            className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
+          >
+            My Projects
+          </Link>
+          <Link
+            href="/profile"
+            className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
+          >
             Profile
+          </Link>
+          <Link
+            href="/user-search"
+            className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
+          >
+            User Search
           </Link>
           <button
             onClick={handleSignOut}
@@ -72,10 +99,16 @@ export default function Navbar() {
         </>
       ) : (
         <>
-          <Link href="/login" className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20">
+          <Link
+            href="/login"
+            className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
+          >
             Sign In
           </Link>
-          <Link href="/signup" className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20">
+          <Link
+            href="/signup"
+            className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
+          >
             Sign Up
           </Link>
         </>

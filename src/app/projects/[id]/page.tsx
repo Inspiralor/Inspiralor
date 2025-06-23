@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 
 type Project = {
   id: string;
@@ -25,6 +26,10 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [author, setAuthor] = useState<{
+    name: string;
+    unique_id: string;
+  } | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -44,6 +49,19 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
   }, []);
+
+  useEffect(() => {
+    const fetchAuthor = async () => {
+      if (!project?.creator_id) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("name, unique_id")
+        .eq("id", project.creator_id)
+        .single();
+      setAuthor(data);
+    };
+    if (project) fetchAuthor();
+  }, [project]);
 
   if (loading)
     return <main className="max-w-2xl mx-auto py-10 px-4">Loading...</main>;
@@ -85,6 +103,19 @@ export default function ProjectDetailPage() {
           ))}
         </div>
         <div className="mb-2 text-muted">
+          Author:{" "}
+          {author ? (
+            <Link
+              href={`/profile/${author.unique_id}`}
+              className="text-gold hover:underline font-mono"
+            >
+              {author.name || "User"} ({author.unique_id})
+            </Link>
+          ) : (
+            <span>Loading...</span>
+          )}
+        </div>
+        <div className="mb-2 text-muted">
           Posted: {new Date(project.created_at).toLocaleString()}
         </div>
         <div className="mb-4 text-gray-200 whitespace-pre-line">
@@ -118,12 +149,20 @@ export default function ProjectDetailPage() {
             <strong className="text-primary">Files:</strong>
             <ul className="list-disc ml-6 flex flex-col gap-3 mt-2">
               {project.files.map((file, i) => {
-                const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name);
+                const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(
+                  file.name
+                );
                 return (
                   <li key={i} className="flex items-center gap-4">
                     {isImage ? (
                       <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
-                        <Image src={file.url} alt={file.name} width={128} height={128} className="object-cover w-full h-full" />
+                        <Image
+                          src={file.url}
+                          alt={file.name}
+                          width={128}
+                          height={128}
+                          className="object-cover w-full h-full"
+                        />
                       </div>
                     ) : null}
                     <a

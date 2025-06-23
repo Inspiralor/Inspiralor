@@ -35,6 +35,7 @@ type Project = {
   tags: string[];
   status: string;
   files?: { name: string; url: string }[];
+  creator_id?: string;
 };
 
 function ProjectCard({
@@ -44,14 +45,19 @@ function ProjectCard({
   project: Project;
   delay?: number;
 }) {
-  // Find first image file
-  const imageFile = project.files?.find(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
-  const [user, setUser] = useState<any>(null);
+  const imageFile = project.files?.find((f) =>
+    /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
+  );
+  const [user, setUser] = useState<{ id: string } | null>(null);
   const [favourites, setFavourites] = useState<string[]>([]);
+  const [author, setAuthor] = useState<{
+    name: string;
+    unique_id: string;
+  } | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+    supabase.auth.getUser().then((result) => {
+      setUser(result.data.user);
     });
   }, []);
 
@@ -62,15 +68,29 @@ function ProjectCard({
         .from("favourites")
         .select("project_id")
         .eq("user_id", user.id);
-      setFavourites((data || []).map((f: any) => f.project_id));
+      setFavourites(
+        (data || []).map((f: { project_id: string }) => f.project_id)
+      );
     };
     fetchFavourites();
   }, [user]);
 
+  useEffect(() => {
+    const fetchAuthor = async () => {
+      if (!project.creator_id) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("name, unique_id")
+        .eq("id", project.creator_id)
+        .single();
+      setAuthor(data);
+    };
+    fetchAuthor();
+  }, [project.creator_id]);
+
   const toggleFavourite = async (projectId: string) => {
     if (!user) return;
     if (favourites.includes(projectId)) {
-      // Unfavourite
       await supabase
         .from("favourites")
         .delete()
@@ -78,7 +98,6 @@ function ProjectCard({
         .eq("project_id", projectId);
       setFavourites(favourites.filter((id) => id !== projectId));
     } else {
-      // Favourite
       await supabase
         .from("favourites")
         .insert([{ user_id: user.id, project_id: projectId }]);
@@ -87,6 +106,7 @@ function ProjectCard({
   };
 
   const isFavourited = favourites.includes(project.id);
+  const isOwnProject = user && user.id === project.creator_id;
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -94,13 +114,23 @@ function ProjectCard({
       transition={{ delay, duration: 0.5, type: "spring" }}
       className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-3 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
     >
-      {imageFile && (
-        <div className="w-full flex justify-center mb-2">
-          <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
-            <Image src={imageFile.url} alt={imageFile.name} width={112} height={112} className="object-cover w-full h-full" />
-          </div>
+      <div className="w-full flex justify-center mb-2">
+        <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
+          {imageFile ? (
+            <Image
+              src={imageFile.url}
+              alt={imageFile.name}
+              width={112}
+              height={112}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
+              <span>No Image</span>
+            </div>
+          )}
         </div>
-      )}
+      </div>
       <div className="flex items-center justify-between">
         <Link
           href={`/projects/${project.id}`}
@@ -108,7 +138,7 @@ function ProjectCard({
         >
           {project.title}
         </Link>
-        {user && (
+        {user && !isOwnProject && (
           <button
             onClick={() => toggleFavourite(project.id)}
             className="ml-2 text-gold hover:text-red-500 text-2xl focus:outline-none"
@@ -128,6 +158,17 @@ function ProjectCard({
         ))}
       </div>
       <div className="text-xs text-muted mt-1">Status: {project.status}</div>
+      {author && (
+        <div className="text-xs mt-2">
+          by{" "}
+          <Link
+            href={`/profile/${author.unique_id}`}
+            className="text-gold hover:underline font-mono"
+          >
+            {author.name || "User"} ({author.unique_id})
+          </Link>
+        </div>
+      )}
     </motion.div>
   );
 }

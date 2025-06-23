@@ -15,10 +15,18 @@ export default function SignupPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       setError(error.message);
     } else {
+      // Generate a unique, user-friendly ID (8-char nanoid)
+      const uniqueId = Math.random().toString(36).substring(2, 10);
+      if (data.user) {
+        await supabase
+          .from("profiles")
+          .update({ unique_id: uniqueId })
+          .eq("id", data.user.id);
+      }
       setSuccess("Check your email for a confirmation link.");
       setTimeout(() => router.push("/login"), 2000);
     }

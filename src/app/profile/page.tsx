@@ -12,6 +12,7 @@ import {
   FaXTwitter,
   FaFacebook,
 } from "react-icons/fa6";
+import { data } from "framer-motion/client";
 
 type Project = {
   id: string;
@@ -158,7 +159,7 @@ export default function ProfilePage() {
     const filePath = `${user.id}/${file.name}`;
     const { error } = await supabase.storage
       .from("profile-images")
-      .upload(filePath, file, { update: true });
+      .upload(filePath, file);
     if (error) {
       setUploading(false);
       alert("Image upload failed: " + error.message);
@@ -212,35 +213,95 @@ export default function ProfilePage() {
   };
 
   if (loading)
-    return <main className="max-w-2xl mx-auto py-10 px-4">Loading...</main>;
+    return (
+      <main className="min-h-screen flex items-center justify-center py-10 px-4">
+        Loading...
+      </main>
+    );
   if (!user)
     return (
-      <main className="max-w-2xl mx-auto py-10 px-4">
+      <main className="min-h-screen flex items-center justify-center py-10 px-4">
         Sign in to view your profile.
       </main>
     );
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4">
+    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex flex-col items-center py-10 px-4 w-full">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
-        className="w-full max-w-2xl rounded-xl bg-glass shadow-glass p-8 border border-border backdrop-blur-md"
+        className="w-full max-w-5xl rounded-xl bg-glass shadow-glass p-12 border border-border backdrop-blur-md flex flex-col gap-8"
       >
-        <h1 className="text-4xl font-bold mb-6 text-primary font-display">
-          {editing ? (
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your Name"
-              className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted text-3xl font-bold mb-2 w-full"
+        <div className="flex flex-col md:flex-row gap-12 items-center w-full">
+          <div className="relative w-40 h-40">
+            <Image
+              src={profile?.profile_image || "/images/Icon.jpeg"}
+              alt="Profile"
+              fill
+              className="rounded-full object-cover border-4 border-gold shadow-lg bg-white"
             />
-          ) : (
-            name || "Profile"
-          )}
-        </h1>
+          </div>
+          <div className="flex-1 flex flex-col gap-3 text-lg">
+            <div className="flex flex-col md:flex-row md:items-center gap-2">
+              <span className="text-3xl font-bold text-primary font-display">
+                {name || "Profile"}
+              </span>
+              <span className="ml-4 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold text-sm font-mono">
+                ID: {profile?.unique_id || user?.id?.slice(0, 8)}
+              </span>
+            </div>
+            <div className="text-accent text-base">
+              Email: <span className="font-mono">{user?.email}</span>
+            </div>
+            <div className="mb-2">
+              <strong>Bio:</strong>{" "}
+              {profile?.bio || <span className="text-muted">No bio</span>}
+            </div>
+            <div className="mb-2">
+              <strong>Interests:</strong>{" "}
+              {profile?.interests || (
+                <span className="text-muted">No interests</span>
+              )}
+            </div>
+            <div className="mb-2">
+              <strong>Portfolio:</strong>{" "}
+              {profile?.portfolio_links?.length ? (
+                profile.portfolio_links.map((l, i) => (
+                  <a
+                    key={i}
+                    href={l}
+                    className="text-accent underline mr-2"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {l}
+                  </a>
+                ))
+              ) : (
+                <span className="text-muted">No links</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-4 mt-2">
+              {SOCIALS.map(({ key, label, icon: Icon }) =>
+                profile && (profile[key] as string) ? (
+                  <a
+                    key={key}
+                    href={profile[key] as string}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="hidden md:inline font-semibold text-sm">
+                      {label}
+                    </span>
+                  </a>
+                ) : null
+              )}
+            </div>
+          </div>
+        </div>
         {editing ? (
           <div className="mb-10 flex flex-col gap-6">
             <div className="flex flex-col md:flex-row gap-8 items-center mb-4">
@@ -314,74 +375,14 @@ export default function ProfilePage() {
             </motion.button>
           </div>
         ) : (
-          <div className="mb-10 flex flex-col gap-8">
-            <div className="flex flex-col md:flex-row gap-8 items-center">
-              <div className="relative w-32 h-32">
-                <Image
-                  src={profile?.profile_image || "/images/Icon.jpeg"}
-                  alt="Profile"
-                  fill
-                  className="rounded-full object-cover border-4 border-gold shadow-lg bg-white"
-                />
-              </div>
-              <div className="flex-1 flex flex-col gap-3">
-                <div className="mb-2">
-                  <strong>Bio:</strong>{" "}
-                  {profile?.bio || <span className="text-muted">No bio</span>}
-                </div>
-                <div className="mb-2">
-                  <strong>Interests:</strong>{" "}
-                  {profile?.interests || (
-                    <span className="text-muted">No interests</span>
-                  )}
-                </div>
-                <div className="mb-2">
-                  <strong>Portfolio:</strong>{" "}
-                  {profile?.portfolio_links?.length ? (
-                    profile.portfolio_links.map((l, i) => (
-                      <a
-                        key={i}
-                        href={l}
-                        className="text-accent underline mr-2"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {l}
-                      </a>
-                    ))
-                  ) : (
-                    <span className="text-muted">No links</span>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-4 mt-2">
-                  {SOCIALS.map(({ key, label, icon: Icon }) =>
-                    profile && (profile[key] as string) ? (
-                      <a
-                        key={key}
-                        href={profile[key] as string}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
-                      >
-                        <Icon className="w-5 h-5" />
-                        <span className="hidden md:inline font-semibold text-sm">
-                          {label}
-                        </span>
-                      </a>
-                    ) : null
-                  )}
-                </div>
-              </div>
-            </div>
-            <motion.button
-              onClick={() => setEditing(true)}
-              className="bg-surface text-accent px-6 py-2 rounded-xl hover:bg-gold hover:text-primary transition-colors text-lg font-bold border border-gold shadow"
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ scale: 1.03 }}
-            >
-              Edit
-            </motion.button>
-          </div>
+          <motion.button
+            onClick={() => setEditing(true)}
+            className="bg-surface text-accent px-6 py-2 rounded-xl hover:bg-gold hover:text-primary transition-colors text-lg font-bold border border-gold shadow"
+            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.03 }}
+          >
+            Edit
+          </motion.button>
         )}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold mb-2 text-primary">
