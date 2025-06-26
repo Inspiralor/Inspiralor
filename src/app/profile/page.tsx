@@ -12,7 +12,6 @@ import {
   FaXTwitter,
   FaFacebook,
 } from "react-icons/fa6";
-import { data } from "framer-motion/client";
 import { nanoid } from "nanoid";
 
 type Project = {
@@ -34,6 +33,7 @@ type Profile = {
   instagram?: string;
   x?: string;
   facebook?: string;
+  email?: string;
   [key: string]: string | string[] | null | undefined;
 };
 
@@ -98,6 +98,7 @@ export default function ProfilePage() {
             instagram: "",
             x: "",
             facebook: "",
+            email: user.email ?? "",
           },
         ]);
         profile = {
@@ -113,7 +114,15 @@ export default function ProfilePage() {
           instagram: "",
           x: "",
           facebook: "",
+          email: user.email ?? "",
         };
+      } else if (profile.email !== user.email) {
+        // Update email if it has changed or is missing
+        await supabase
+          .from("profiles")
+          .update({ email: user.email ?? "" })
+          .eq("id", user.id);
+        profile.email = user.email ?? "";
       }
       setProfile(profile);
       setName(profile.name || "");
@@ -181,7 +190,7 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !profile) return;
     const { error } = await supabase
       .from("profiles")
       .update({
@@ -193,7 +202,9 @@ export default function ProfilePage() {
           .map((l) => l.trim())
           .filter(Boolean),
         profile_image: profileImage,
+        unique_id: profile.unique_id,
         ...socials,
+        email: user.email ?? "",
       })
       .eq("id", user.id);
     if (error) {
@@ -202,7 +213,7 @@ export default function ProfilePage() {
     }
     setEditing(false);
     setProfile({
-      id: user.id,
+      ...profile,
       name,
       bio,
       interests,
@@ -212,6 +223,7 @@ export default function ProfilePage() {
         .filter(Boolean),
       profile_image: profileImage,
       ...socials,
+      email: user.email ?? "",
     });
   };
 

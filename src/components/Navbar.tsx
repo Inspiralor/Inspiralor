@@ -84,12 +84,6 @@ export default function Navbar() {
           >
             Profile
           </Link>
-          <Link
-            href="/user-search"
-            className="hover:text-highlight text-lg font-semibold transition-colors px-3 py-2 rounded-xl hover:bg-accent/20"
-          >
-            User Search
-          </Link>
           <button
             onClick={handleSignOut}
             className="ml-2 px-4 py-2 rounded-xl bg-dark text-accent font-bold hover:bg-gold hover:text-primary transition-colors shadow-md border border-gold"
