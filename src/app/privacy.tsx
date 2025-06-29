@@ -1,7 +1,12 @@
+import Navbar from "@/components/Navbar";
+
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-white">
-      <h1 className="text-4xl font-bold">Privacy Policy</h1>
-    </main>
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4">
+        <h1 className="text-4xl font-bold text-primary font-display">Privacy Policy</h1>
+      </main>
+    </>
   );
 } 
