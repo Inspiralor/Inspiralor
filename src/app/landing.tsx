@@ -1,0 +1,187 @@
+"use client";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { SparklesIcon } from "@heroicons/react/24/solid";
+import Image from "next/image";
+import Navbar from "@/components/Navbar";
+import { useInView } from 'react-intersection-observer';
+import { FaLinkedin, FaXTwitter, FaFacebook } from 'react-icons/fa6';
+
+function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.6, type: "spring" }}
+      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-2 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
+    >
+      <Link
+        href={`/projects/${project.id}`}
+        className="text-xl font-bold text-primary hover:underline"
+      >
+        {project.title}
+      </Link>
+      <div className="text-sm text-muted">{project.category}</div>
+      <div className="text-gray-200 line-clamp-2">{project.description}</div>
+      <div className="flex gap-2 flex-wrap text-xs mt-2">
+        {project.tags?.map((tag: string) => (
+          <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
+            #{tag}
+          </span>
+        ))}
+      </div>
+      <div className="text-xs text-muted mt-1">Status: {project.status}</div>
+    </motion.div>
+  );
+}
+
+export default function Landing() {
+  const [totalProjects, setTotalProjects] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const section1Ref = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const { ref: inViewRef, inView: section1InView } = useInView({ threshold: 0.5 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const { count: total } = await supabase.from("projects").select("id", { count: "exact", head: true });
+      setTotalProjects(total || 0);
+      const { count: users } = await supabase.from("profiles").select("id", { count: "exact", head: true });
+      setTotalUsers(users || 0);
+    };
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!section1Ref.current) return;
+      const rect = section1Ref.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const visible = Math.max(0, windowHeight - rect.top);
+      setZoom(1 + Math.min(visible / windowHeight, 1) * 0.08);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div className="w-full">
+      <Navbar hideGetStarted={true} isTransparent={section1InView} />
+      {/* Section 1: Hero */}
+      <div ref={el => { section1Ref.current = el; inViewRef(el); }} className="relative h-screen w-full overflow-hidden flex items-center">
+        <Image src="/images/HomePage/Section1/Background.png" alt="Section 1" fill style={{ objectFit: 'cover', transform: `scale(${zoom})`, transition: 'transform 0.2s' }} />
+        <div className="absolute inset-0 flex flex-col justify-center items-start px-8 md:px-32" style={{ zIndex: 2 }}>
+          <h1 className="text-white text-5xl md:text-6xl font-extrabold leading-tight mb-4" style={{textShadow:'0 2px 16px rgba(0,0,0,0.4)'}}>
+            <span className="underline decoration-4">Revive</span> Adopt, Remix,<br />and Revive<br />Unfinished Ideas
+          </h1>
+          <p className="text-white text-lg md:text-xl max-w-xl mb-8" style={{textShadow:'0 2px 8px rgba(0,0,0,0.3)'}}>
+            Join our community to discover, collaborate, and breathe new life into unfinished projects. ProjectAdopt connects passionate individuals with innovative ideas waiting to be realized.
+          </p>
+        </div>
+        <div className="absolute top-0 left-0 w-full h-full bg-black/30" />
+      </div>
+
+      {/* Section 2: Mission & Vision (white bg, black text) */}
+      <div className="w-full bg-white py-20 text-black">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-start gap-12 mb-12">
+            <div className="flex-1">
+              <h2 className="text-4xl font-extrabold mb-4">Unlocking Innovation: <br /><span className="italic">How <b>Project Graveyard</b> Works</span></h2>
+            </div>
+            <div className="flex-1">
+              <p className="text-lg">Project Graveyard simplifies the process of reviving abandoned projects. Our platform connects creators with unfinished ideas to passionate individuals ready to collaborate. Discover how our intuitive tools and supportive community can help you transform forgotten concepts into thriving realities.</p>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row gap-8">
+            <div className="bg-white rounded-xl shadow p-0 flex flex-col">
+              <Image src="/images/HomePage/Section4/BrowseAvaliableProjects.png" alt="Browse Projects" width={350} height={220} className="rounded-t-xl" />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Browse Available Projects</h3>
+                <p className="text-base mb-4">Explore a diverse range of abandoned projects seeking new life. Filter by category, skill set, or interest to find the perfect opportunity to contribute and collaborate.</p>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-0 flex flex-col">
+              <Image src="/images/HomePage/Section4/ConnectAndCollaborate.png" alt="Connect and Collaborate" width={350} height={220} className="rounded-t-xl" />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Connect and Collaborate</h3>
+                <p className="text-base mb-4">Our platform provides integrated tools for seamless communication, resource sharing, and progress tracking. Connect with fellow collaborators and work together to bring projects to fruition.</p>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-0 flex flex-col">
+              <Image src="/images/HomePage/Section4/ReviveAndLaunch.png" alt="Revive and Launch" width={350} height={220} className="rounded-t-xl" />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Revive and Launch</h3>
+                <p className="text-base mb-4">Transform forgotten ideas into successful endeavors with the support of the ProjectAdopt community. Witness the impact of your contributions as projects come to life and make a difference.</p>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 5: Meet Innovators (gray bg, match screenshot) */}
+      <div className="w-full bg-gray-100 py-20 text-black">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-start gap-12 mb-12">
+            <div className="flex-1">
+              <div className="uppercase text-sm font-bold mb-2">Our Team</div>
+              <h2 className="text-4xl font-extrabold mb-2">Meet Innovators</h2>
+              <p className="text-lg mb-8">Dedicated to connecting creators with unfinished ideas, fostering collaboration and innovation.</p>
+              <button className="border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+            </div>
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex flex-col items-center">
+                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Dr. Anya Sharma" width={250} height={250} className="rounded mb-4 object-cover" />
+                <h4 className="text-xl font-bold mb-1">Dr. Anya Sharma</h4>
+                <div className="text-base font-semibold mb-1">Chief Innovation Officer</div>
+                <p className="text-base text-center mb-2">Anya leads the innovation strategy, ensuring ProjectAdopt remains at the forefront of collaborative technology.</p>
+                <div className="flex gap-2 mt-2">
+                  <a href="#" className="text-black"><FaLinkedin size={20} /></a>
+                  <a href="#" className="text-black"><FaXTwitter size={20} /></a>
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Ben Carter" width={250} height={250} className="rounded mb-4 object-cover" />
+                <h4 className="text-xl font-bold mb-1">Ben Carter</h4>
+                <div className="text-base font-semibold mb-1">Lead Developer</div>
+                <p className="text-base text-center mb-2">Ben oversees the technical development of the platform, ensuring a seamless and user-friendly experience.</p>
+                <div className="flex gap-2 mt-2">
+                  <a href="#" className="text-black"><FaLinkedin size={20} /></a>
+                  <a href="#" className="text-black"><FaXTwitter size={20} /></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="w-full bg-black py-10 text-white">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
+          <div className="w-full flex flex-col md:flex-row items-center justify-center gap-12 mb-4 relative">
+            <div className="flex flex-1 justify-center gap-12">
+              <Link href="/about">About Us</Link>
+              <Link href="/projects">Projects</Link>
+              <Link href="/contact">Contact</Link>
+            </div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-3">
+              <a href="#" aria-label="Facebook"><FaFacebook size={16} /></a>
+              <a href="#" aria-label="LinkedIn"><FaLinkedin size={16} /></a>
+              <a href="#" aria-label="X"><FaXTwitter size={16} /></a>
+            </div>
+          </div>
+          <hr className="border-white/40 mb-4 w-full" />
+          <div className="flex flex-col md:flex-row items-center justify-center text-sm gap-8">
+            <div>Copyright © 2025 ProjectAdopt. All rights reserved.</div>
+            <Link href="/terms">Terms and Conditions</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+} 

@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import Navbar from "@/components/Navbar";
 
 type Project = {
   id: string;
@@ -151,36 +152,39 @@ export default function MyProjectsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
-      <section className="max-w-5xl mx-auto py-12 px-4">
-        <h1 className="text-3xl font-bold mb-6 text-primary font-display">
-          My Projects
-        </h1>
-        {loading ? (
-          <div>Loading...</div>
-        ) : projects.length === 0 ? (
-          <div className="text-muted">No projects found.</div>
-        ) : (
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.08 } },
-            }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-          >
-            {projects.map((p, i) => (
-              <ProjectCard
-                key={p.id}
-                project={p}
-                delay={0.05 * i}
-                onDelete={handleDelete}
-              />
-            ))}
-          </motion.div>
-        )}
-      </section>
-    </main>
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
+        <section className="max-w-5xl mx-auto py-12 px-4">
+          <h1 className="text-3xl font-bold mb-6 text-primary font-display">
+            My Projects
+          </h1>
+          {loading ? (
+            <div>Loading...</div>
+          ) : projects.length === 0 ? (
+            <div className="text-muted">No projects found.</div>
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.08 } },
+              }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {projects.map((p, i) => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  delay={0.05 * i}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </motion.div>
+          )}
+        </section>
+      </main>
+    </>
   );
 }

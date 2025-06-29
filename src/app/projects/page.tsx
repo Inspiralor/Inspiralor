@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import Navbar from "@/components/Navbar";
 
 const categories = [
   "All",
@@ -200,70 +201,73 @@ export default function ProjectsPage() {
   }, [category, status, tag]);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
-      <section className="max-w-5xl mx-auto py-12 px-4">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-wrap gap-4 mb-8 items-center rounded-xl bg-glass border border-border shadow-glass px-6 py-4 backdrop-blur-md"
-        >
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-          >
-            {categories.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-          <div className="relative flex-1 max-w-xs">
-            <MagnifyingGlassIcon className="w-5 h-5 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Filter by tag"
-              value={tag}
-              onChange={(e) => setTag(e.target.value)}
-              className="pl-10 border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted w-full"
-            />
-          </div>
-        </motion.div>
-        {loading ? (
-          <div className="text-center text-muted py-10">Loading...</div>
-        ) : (
+    <>
+      <Navbar />
+      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
+        <section className="max-w-5xl mx-auto py-12 px-4">
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: {},
-              visible: { transition: { staggerChildren: 0.08 } },
-            }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-wrap gap-4 mb-8 items-center rounded-xl bg-glass border border-border shadow-glass px-6 py-4 backdrop-blur-md"
           >
-            {projects.length === 0 && (
-              <div className="col-span-full text-center text-muted">
-                No projects found.
-              </div>
-            )}
-            {projects.map((p, i) => (
-              <ProjectCard key={p.id} project={p} delay={0.05 * i} />
-            ))}
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
+            >
+              {statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+            <div className="relative flex-1 max-w-xs">
+              <MagnifyingGlassIcon className="w-5 h-5 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Filter by tag"
+                value={tag}
+                onChange={(e) => setTag(e.target.value)}
+                className="pl-10 border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted w-full"
+              />
+            </div>
           </motion.div>
-        )}
-      </section>
-    </main>
+          {loading ? (
+            <div className="text-center text-muted py-10">Loading...</div>
+          ) : (
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.08 } },
+              }}
+              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
+            >
+              {projects.length === 0 && (
+                <div className="col-span-full text-center text-muted">
+                  No projects found.
+                </div>
+              )}
+              {projects.map((p, i) => (
+                <ProjectCard key={p.id} project={p} delay={0.05 * i} />
+              ))}
+            </motion.div>
+          )}
+        </section>
+      </main>
+    </>
   );
 }
