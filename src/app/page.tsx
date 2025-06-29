@@ -1,10 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { SparklesIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
+import Navbar from "@/components/Navbar";
+import { useInView } from 'react-intersection-observer';
+import { FaLinkedin, FaXTwitter, FaFacebook } from 'react-icons/fa6';
 
 function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
   return (
@@ -36,101 +39,208 @@ function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
 
 export default function Home() {
   const [totalProjects, setTotalProjects] = useState(0);
-  const [adoptedProjects, setAdoptedProjects] = useState(0);
-  const [remixedProjects, setRemixedProjects] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [email, setEmail] = useState("");
+  const section1Ref = useRef<HTMLDivElement>(null);
+  const [zoom, setZoom] = useState(1);
+  const { ref: inViewRef, inView: section1InView } = useInView({ threshold: 0.5 });
+
   useEffect(() => {
     const fetchStats = async () => {
       const { count: total } = await supabase.from("projects").select("id", { count: "exact", head: true });
       setTotalProjects(total || 0);
-      const { count: adopted } = await supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "Adopted");
-      setAdoptedProjects(adopted || 0);
-      const { count: remixed } = await supabase.from("projects").select("id", { count: "exact", head: true }).eq("status", "Remixed");
-      setRemixedProjects(remixed || 0);
+      const { count: users } = await supabase.from("profiles").select("id", { count: "exact", head: true });
+      setTotalUsers(users || 0);
     };
     fetchStats();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!section1Ref.current) return;
+      const rect = section1Ref.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      const visible = Math.max(0, windowHeight - rect.top);
+      setZoom(1 + Math.min(visible / windowHeight, 1) * 0.08);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) window.location.href = `/signup?email=${encodeURIComponent(email)}`;
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20 w-full">
-      <div className="flex flex-col md:flex-row w-full h-full min-h-[60vh] gap-4 md:gap-x-8 px-4 md:px-32">
-        {/* Left: Slogan, text */}
-        <div className="flex-1 flex flex-col justify-start md:justify-center py-16 gap-8">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-4xl md:text-6xl font-extrabold font-display text-highlight drop-shadow-lg mb-4 text-left"
-          >
-            Adopt, Remix, and Revive Unfinished Ideas
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-lg text-accent max-w-2xl mb-2 text-left"
-          >
-            Project Graveyard is a platform dedicated to breathing new life into unfinished, abandoned, or forgotten projects. Whether you are a developer, artist, writer, designer, or innovator, our mission is to connect creative minds and foster a culture of collaboration and reinvention. By sharing your incomplete works, you open the door for others to learn from, build upon, or transform your ideas into something extraordinary. We believe that every project, no matter how incomplete, has the potential to inspire and spark new journeys.
-          </motion.p>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="text-lg text-accent max-w-2xl text-left"
-          >
-            Our platform offers a seamless experience for uploading and discovering projects, complete with rich media, detailed descriptions, and tagging. Users can create personalized profiles, showcase their interests, and link their social accounts to connect with like-minded creators. The adoption and remixing features empower users to take ownership of projects, contribute improvements, or spin off entirely new works. Join our growing community to collaborate, learn, and make an impact by giving unfinished ideas a second chance.
-          </motion.p>
+    <div className="w-full">
+      <Navbar isTransparent={section1InView} />
+      {/* Section 1: Hero */}
+      <div ref={el => { section1Ref.current = el; inViewRef(el); }} className="relative h-screen w-full overflow-hidden flex items-center">
+        <Image src="/images/HomePage/Section1/Background.png" alt="Section 1" fill style={{ objectFit: 'cover', transform: `scale(${zoom})`, transition: 'transform 0.2s' }} />
+        <div className="absolute inset-0 flex flex-col justify-center items-start px-8 md:px-32" style={{ zIndex: 2 }}>
+          <h1 className="text-white text-5xl md:text-6xl font-extrabold leading-tight mb-4" style={{textShadow:'0 2px 16px rgba(0,0,0,0.4)'}}>
+            <span className="underline decoration-4">Revive</span> Adopt, Remix,<br />and Revive<br />Unfinished Ideas
+          </h1>
+          <p className="text-white text-lg md:text-xl max-w-xl mb-8" style={{textShadow:'0 2px 8px rgba(0,0,0,0.3)'}}>
+            Join our community to discover, collaborate, and breathe new life into unfinished projects. ProjectAdopt connects passionate individuals with innovative ideas waiting to be realized.
+          </p>
+          <form className="flex gap-2 w-full max-w-md" onSubmit={handleSignup}>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" className="rounded px-4 py-2 flex-1 text-white placeholder-white bg-black/40 border border-white" />
+            <button type="submit" className="bg-emerald-400 text-white px-6 py-2 rounded">Sign up</button>
+          </form>
         </div>
-        {/* Right: Hero image */}
-        <div className="flex-1 flex items-start md:items-center justify-center py-16">
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3, duration: 0.8 }}
-            className="w-full max-w-[500px] h-auto rounded-2xl overflow-hidden border-4 border-gold shadow-xl bg-surface"
-          >
-            <Image
-              src="/images/Image1.jpg"
-              alt="Hero Image"
-              width={500}
-              height={340}
-              className="w-full h-auto object-cover object-center"
-              priority
-            />
-          </motion.div>
+        <div className="absolute top-0 left-0 w-full h-full bg-black/30" />
+      </div>
+
+      {/* Section 2: Mission & Vision (white bg, black text) */}
+      <div className="w-full bg-white py-20 text-black">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 px-4">
+          <div className="flex-1">
+            <h2 className="text-4xl font-extrabold mb-4">Our Mission & Vision</h2>
+            <p className="text-lg mb-10">At ProjectAdopt, we aim to breathe new life into abandoned projects by connecting creators and passionate individuals. Our platform fosters collaboration, transparency, and creativity to turn ideas into successful realities.</p>
+            <div className="grid grid-cols-2 gap-8 text-center mt-8">
+              <div>
+                <div className="text-4xl font-bold">{totalProjects}</div>
+                <div className="font-semibold">Total Projects</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold">{totalUsers}</div>
+                <div className="font-semibold">Active Collaborators</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold">0</div>
+                <div className="font-semibold">Total Projects Adopted</div>
+              </div>
+              <div>
+                <div className="text-4xl font-bold">0</div>
+                <div className="font-semibold">Projects In Progress</div>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 flex justify-center">
+            <Image src="/images/HomePage/Section2/OurMission&Vision.png" alt="Section 2" width={500} height={400} className="rounded-xl shadow-lg" />
+          </div>
         </div>
       </div>
-      {/* Stats row */}
-      <section className="w-full flex flex-col md:flex-row gap-8 mt-8 px-4 md:px-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
-          className="flex-1 bg-glass border border-gold rounded-xl px-8 py-8 text-center shadow-lg min-w-[220px]"
-        >
-          <div className="text-4xl font-bold text-gold mb-2">{totalProjects}</div>
-          <div className="text-xl text-accent font-semibold">Total Projects</div>
-          <div className="text-md text-muted mt-2 max-w-xs mx-auto">A growing collection of creative works from all disciplines, waiting to be adopted, remixed, or completed. Every project is an opportunity for learning, collaboration, and innovation.</div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="flex-1 bg-glass border border-gold rounded-xl px-8 py-8 text-center shadow-lg min-w-[220px]"
-        >
-          <div className="text-4xl font-bold text-gold mb-2">{adoptedProjects}</div>
-          <div className="text-xl text-accent font-semibold">Adopted Projects</div>
-          <div className="text-md text-muted mt-2 max-w-xs mx-auto">Projects that have found new owners and are on their way to completion or transformation. Adopting a project is a great way to contribute, learn, and make a difference in the community.</div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.8 }}
-          className="flex-1 bg-glass border border-gold rounded-xl px-8 py-8 text-center shadow-lg min-w-[220px]"
-        >
-          <div className="text-4xl font-bold text-gold mb-2">{remixedProjects}</div>
-          <div className="text-xl text-accent font-semibold">Remixed Projects</div>
-          <div className="text-md text-muted mt-2 max-w-xs mx-auto">Projects that have been reimagined, extended, or transformed into something new. Remixing is at the heart of creative evolution and cross-disciplinary innovation.</div>
-        </motion.div>
-      </section>
-    </main>
+
+      {/* Section 3: Featured Projects (black bg, white text) */}
+      <div className="w-full bg-black py-20 text-white">
+        <div className="max-w-6xl mx-auto px-4">
+          <h2 className="text-4xl font-extrabold mb-6">Featured Projects</h2>
+          <p className="text-lg mb-10 max-w-2xl">Explore a curated selection of our most impactful projects that demonstrate the power of community collaboration and idea revival.</p>
+          <div className="w-full rounded-xl overflow-hidden mb-8">
+            <Image src="/images/HomePage/Section3/FeaturedProject.png" alt="Section 3" width={1200} height={600} className="w-full object-cover" />
+          </div>
+        </div>
+      </div>
+
+      {/* Section 4: How Project Graveyard Works (match screenshot) */}
+      <div className="w-full bg-white py-20 text-black">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-start gap-12 mb-12">
+            <div className="flex-1">
+              <h2 className="text-4xl font-extrabold mb-4">Unlocking Innovation: <br /><span className="italic">How <b>Project Graveyard</b> Works</span></h2>
+            </div>
+            <div className="flex-1">
+              <p className="text-lg">Project Graveyard simplifies the process of reviving abandoned projects. Our platform connects creators with unfinished ideas to passionate individuals ready to collaborate. Discover how our intuitive tools and supportive community can help you transform forgotten concepts into thriving realities.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white rounded-xl shadow p-0 flex flex-col">
+              <Image src="/images/HomePage/Section4/BrowseAvaliableProjects.png" alt="Browse Projects" width={350} height={220} className="rounded-t-xl" />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Browse Available Projects</h3>
+                <p className="text-base mb-4">Explore a diverse range of abandoned projects seeking new life. Filter by category, skill set, or interest to find the perfect opportunity to contribute and collaborate.</p>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-0 flex flex-col">
+              <Image src="/images/HomePage/Section4/ConnectAndCollaborate.png" alt="Connect and Collaborate" width={350} height={220} className="rounded-t-xl" />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Connect and Collaborate</h3>
+                <p className="text-base mb-4">Our platform provides integrated tools for seamless communication, resource sharing, and progress tracking. Connect with fellow collaborators and work together to bring projects to fruition.</p>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              </div>
+            </div>
+            <div className="bg-white rounded-xl shadow p-0 flex flex-col">
+              <Image src="/images/HomePage/Section4/ReviveAndLaunch.png" alt="Revive and Launch" width={350} height={220} className="rounded-t-xl" />
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-2">Revive and Launch</h3>
+                <p className="text-base mb-4">Transform forgotten ideas into successful endeavors with the support of the ProjectAdopt community. Witness the impact of your contributions as projects come to life and make a difference.</p>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 5: Meet Innovators (gray bg, match screenshot) */}
+      <div className="w-full bg-gray-100 py-20 text-black">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row md:items-start gap-12 mb-12">
+            <div className="flex-1">
+              <div className="uppercase text-sm font-bold mb-2">Our Team</div>
+              <h2 className="text-4xl font-extrabold mb-2">Meet Innovators</h2>
+              <p className="text-lg mb-8">Dedicated to connecting creators with unfinished ideas, fostering collaboration and innovation.</p>
+              <button className="border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+            </div>
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex flex-col items-center">
+                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Dr. Anya Sharma" width={250} height={250} className="rounded mb-4 object-cover" />
+                <h4 className="text-xl font-bold mb-1">Dr. Anya Sharma</h4>
+                <div className="text-base font-semibold mb-1">Chief Innovation Officer</div>
+                <p className="text-base text-center mb-2">Anya leads the innovation strategy, ensuring ProjectAdopt remains at the forefront of collaborative technology.</p>
+                <div className="flex gap-2 mt-2">
+                  <a href="#" className="text-black"><FaLinkedin size={20} /></a>
+                  <a href="#" className="text-black"><FaXTwitter size={20} /></a>
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Ben Carter" width={250} height={250} className="rounded mb-4 object-cover" />
+                <h4 className="text-xl font-bold mb-1">Ben Carter</h4>
+                <div className="text-base font-semibold mb-1">Lead Developer</div>
+                <p className="text-base text-center mb-2">Ben oversees the technical development of the platform, ensuring a seamless and user-friendly experience.</p>
+                <div className="flex gap-2 mt-2">
+                  <a href="#" className="text-black"><FaLinkedin size={20} /></a>
+                  <a href="#" className="text-black"><FaXTwitter size={20} /></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section 6: Become a Community Member (black bg, white text) */}
+      <div className="w-full bg-black py-32 text-white flex flex-col items-center justify-center">
+        <h2 className="text-5xl font-extrabold mb-6 text-center">Become a Community Member</h2>
+        <p className="text-xl mb-8 text-center max-w-2xl">Join ProjectAdopt today and connect with passionate creators to bring abandoned ideas back to life.</p>
+        <button className="bg-emerald-400 text-white px-8 py-4 rounded text-lg font-semibold hover:bg-emerald-500 transition-colors" onClick={() => window.location.href = '/signup'}>Join Now</button>
+      </div>
+
+      {/* Footer */}
+      <footer className="w-full bg-black text-white pt-12 pb-6 mt-0">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
+          <div className="w-full flex flex-col md:flex-row items-center justify-center gap-12 mb-4 relative">
+            <div className="flex flex-1 justify-center gap-12">
+              <Link href="/about">About Us</Link>
+              <Link href="/projects">Projects</Link>
+              <Link href="/contact">Contact</Link>
+            </div>
+            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-3">
+              <a href="#" aria-label="Facebook"><FaFacebook size={16} /></a>
+              <a href="#" aria-label="LinkedIn"><FaLinkedin size={16} /></a>
+              <a href="#" aria-label="X"><FaXTwitter size={16} /></a>
+            </div>
+          </div>
+          <hr className="border-white/40 mb-4 w-full" />
+          <div className="flex flex-col md:flex-row items-center justify-center text-sm gap-8">
+            <div>Copyright © 2025 ProjectAdopt. All rights reserved.</div>
+            <Link href="/terms">Terms and Conditions</Link>
+            <Link href="/privacy">Privacy Policy</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
