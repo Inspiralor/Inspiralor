@@ -7,7 +7,7 @@ export default function AboutPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white flex flex-col items-center px-4 py-10">
+      <main className="min-h-screen bg-white flex flex-col items-center px-4 py-10 pt-24">
         <section className="w-full max-w-5xl flex flex-col md:flex-row gap-8 items-center mb-12">
           <div className="flex-1">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-black">Our Journey and Mission</h1>

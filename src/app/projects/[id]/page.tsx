@@ -107,7 +107,7 @@ export default function ProjectDetailPage() {
           {author ? (
             <Link
               href={`/profile/${author.unique_id}`}
-              className="text-black hover:underline font-mono"
+              className="text-muted hover:underline font-mono"
             >
               {author.name || "User"} ({author.unique_id})
             </Link>
