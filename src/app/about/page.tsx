@@ -1,11 +1,12 @@
 "use client";
 import Image from "next/image";
 import { motion } from "framer-motion";
-// Navbar is now handled globally in layout.tsx
+import Navbar from "@/components/Navbar";
 
 export default function AboutPage() {
   return (
     <>
+      <Navbar />
       <main className="min-h-screen bg-white flex flex-col items-center px-4 py-10">
         <section className="w-full max-w-5xl flex flex-col md:flex-row gap-8 items-center mb-12">
           <div className="flex-1">

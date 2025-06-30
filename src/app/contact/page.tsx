@@ -1,7 +1,10 @@
+import Navbar from "@/components/Navbar";
+
 // Navbar is now handled globally in layout.tsx
 export default function ContactPage() {
   return (
     <>
+      <Navbar />
       <main className="min-h-screen bg-white flex flex-col items-center px-4 py-10">
         <section className="w-full max-w-6xl flex flex-col md:flex-row gap-8 items-center mb-12">
           <div className="flex-1">

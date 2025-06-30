@@ -17,7 +17,6 @@ module.exports = {
         bluegray: "#485d66",
         navy: "#142238",
         pale: "#7f8aa5",
-        gold: "#948463",
         background: "#18181B",
         surface: "#232336",
         card: "#232336",

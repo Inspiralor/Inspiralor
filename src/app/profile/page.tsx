@@ -251,7 +251,7 @@ export default function ProfilePage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex flex-col items-center py-10 px-4 w-full">
+      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4 pt-24">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -261,10 +261,10 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row gap-12 items-center w-full">
             <div className="relative w-40 h-40">
               <Image
-                src={profile?.profile_image || "/images/Icon.jpeg"}
+                src={typeof profileImage === 'string' ? profileImage : '/images/Icon.jpeg'}
                 alt="Profile"
                 fill
-                className="rounded-full object-cover border-4 border-gold shadow-lg bg-white"
+                className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
               />
             </div>
             <div className="flex-1 flex flex-col gap-3 text-lg">
@@ -272,7 +272,7 @@ export default function ProfilePage() {
                 <span className="text-3xl font-bold text-primary font-display">
                   {profile?.name || "Profile"}
                 </span>
-                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-gold text-gold text-sm font-mono">
+                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-white text-white text-sm font-mono">
                   ID: {profile?.unique_id || user?.id?.slice(0, 8)}
                 </span>
               </div>
@@ -298,7 +298,7 @@ export default function ProfilePage() {
                       href={profile[key] as string}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
+                      className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-white text-white hover:bg-white hover:text-primary transition-colors shadow"
                     >
                       <Icon className="w-5 h-5" />
                       <span className="hidden md:inline font-semibold text-sm">{label}</span>
@@ -313,12 +313,12 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center mb-4 gap-4">
                 <div className="relative w-32 h-32">
                   <Image
-                    src={profileImage || "/images/Icon.jpeg"}
+                    src={typeof profileImage === 'string' ? profileImage : '/images/Icon.jpeg'}
                     alt="Profile"
                     fill
-                    className="rounded-full object-cover border-4 border-gold shadow-lg bg-white"
+                    className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
                   />
-                  <label className="absolute bottom-2 right-2 bg-gold text-primary rounded-full px-3 py-1 text-xs font-bold cursor-pointer shadow-md border border-dark">
+                  <label className="absolute bottom-2 right-2 bg-white text-primary rounded-full px-3 py-1 text-xs font-bold cursor-pointer shadow-md border border-dark">
                     <input
                       type="file"
                       accept="image/*"
@@ -359,7 +359,7 @@ export default function ProfilePage() {
                   <div className="flex flex-col gap-2">
                     {SOCIALS.map(({ key, label, icon: Icon }) => (
                       <div key={key} className="flex items-center gap-3">
-                        <Icon className="w-6 h-6 text-gold" />
+                        <Icon className="w-6 h-6 text-white" />
                         <input
                           type="url"
                           value={socials[key] || ""}
@@ -376,7 +376,7 @@ export default function ProfilePage() {
               </div>
               <motion.button
                 onClick={handleSave}
-                className="bg-primary text-accent px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gold hover:text-primary transition-colors mt-4 text-lg"
+                className="bg-primary text-accent px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-white hover:text-primary transition-colors mt-4 text-lg"
                 whileTap={{ scale: 0.97 }}
                 whileHover={{ scale: 1.03 }}
                 disabled={uploading}
@@ -387,7 +387,7 @@ export default function ProfilePage() {
           ) : (
             <motion.button
               onClick={() => setEditing(true)}
-              className="bg-surface text-accent px-6 py-2 rounded-xl hover:bg-gold hover:text-primary transition-colors text-lg font-bold border border-gold shadow"
+              className="bg-surface text-accent px-6 py-2 rounded-xl hover:bg-white hover:text-primary transition-colors text-lg font-bold border border-white shadow"
               whileTap={{ scale: 0.97 }}
               whileHover={{ scale: 1.03 }}
             >

@@ -161,16 +161,16 @@ export default function UserProfileViewPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4">
-        <div className="w-full max-w-2xl rounded-xl bg-glass shadow-glass p-8 border border-gold backdrop-blur-md flex flex-col gap-8">
+      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4 pt-24">
+        <div className="w-full max-w-2xl rounded-xl bg-glass shadow-glass p-8 border border-white backdrop-blur-md flex flex-col gap-8">
           <div className="flex flex-col md:flex-row gap-12 items-center w-full">
             <div className="relative w-40 h-40">
               <Image
-                src={imageSrc}
+                src={typeof imageSrc === 'string' ? imageSrc : '/images/Icon.jpeg'}
                 alt="Profile"
                 width={160}
                 height={160}
-                className="rounded-full object-cover border-4 border-gold shadow-lg bg-white"
+                className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
                 style={{ borderRadius: '50%' }}
               />
             </div>
@@ -179,7 +179,7 @@ export default function UserProfileViewPage() {
                 <span className="text-3xl font-bold text-primary font-display">
                   {name || "Profile"}
                 </span>
-                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold text-sm font-mono">
+                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray/20 border border-white text-white text-sm font-mono">
                   ID: {profile?.unique_id || profile?.id?.slice(0, 8)}
                 </span>
               </div>
@@ -208,7 +208,7 @@ export default function UserProfileViewPage() {
                     }).eq("id", user.id);
                     setEditing(false);
                     setProfile({ ...profile, name, bio, interests, portfolio_links: links.split(",").map(l => l.trim()).filter(Boolean), profile_image: profileImage, ...socials });
-                  }} className="bg-primary text-accent px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gold hover:text-primary transition-colors mt-4 text-lg">Save</button>
+                  }} className="bg-primary text-accent px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-white hover:text-primary transition-colors mt-4 text-lg">Save</button>
                   <button onClick={() => setEditing(false)} className="ml-4 bg-red-500 text-white px-6 py-2 rounded font-semibold hover:bg-red-700 transition-colors">Cancel</button>
                 </>
               ) : (
@@ -218,10 +218,10 @@ export default function UserProfileViewPage() {
                   <div className="mb-2"><strong>Portfolio:</strong> {links ? links.split(",").map((l, i) => <a key={i} href={l} className="text-accent underline mr-2" target="_blank" rel="noopener noreferrer">{l}</a>) : <span className="text-muted">No links</span>}</div>
                   <div className="flex flex-wrap gap-4 mt-2">
                     {Object.entries(socials).map(([key, value]) => value ? (
-                      <a key={key} href={value} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"><span className="font-semibold text-sm">{key.charAt(0).toUpperCase() + key.slice(1)}</span></a>
+                      <a key={key} href={value} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-white text-white hover:bg-white hover:text-primary transition-colors shadow"><span className="font-semibold text-sm">{key.charAt(0).toUpperCase() + key.slice(1)}</span></a>
                     ) : null)}
                   </div>
-                  {isOwnProfile && <button onClick={() => setEditing(true)} className="mt-4 bg-surface text-accent px-6 py-2 rounded-xl hover:bg-gold hover:text-primary transition-colors text-lg font-bold border border-gold shadow">Edit</button>}
+                  {isOwnProfile && <button onClick={() => setEditing(true)} className="mt-4 bg-surface text-accent px-6 py-2 rounded-xl hover:bg-white hover:text-primary transition-colors text-lg font-bold border border-white shadow">Edit</button>}
                 </>
               )}
             </div>
@@ -236,7 +236,7 @@ export default function UserProfileViewPage() {
                 <div className="flex flex-col gap-4">
                   {favourited.map((project) => (
                     <div key={project.id} className="flex bg-white/10 rounded-xl border border-border shadow p-4 gap-6 items-center">
-                      <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-surface border border-gold flex items-center justify-center">
+                      <div className="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-surface border border-white flex items-center justify-center">
                         {project.files && project.files.length > 0 ? (
                           <Image src={project.files[0].url} alt={project.files[0].name} width={96} height={96} className="object-cover w-full h-full" />
                         ) : (

@@ -107,7 +107,7 @@ export default function ProjectDetailPage() {
           {author ? (
             <Link
               href={`/profile/${author.unique_id}`}
-              className="text-gold hover:underline font-mono"
+              className="text-black hover:underline font-mono"
             >
               {author.name || "User"} ({author.unique_id})
             </Link>
@@ -155,7 +155,7 @@ export default function ProjectDetailPage() {
                 return (
                   <li key={i} className="flex items-center gap-4">
                     {isImage ? (
-                      <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
+                      <div className="w-32 h-32 rounded-xl overflow-hidden border-2 border-black bg-surface flex items-center justify-center">
                         <Image
                           src={file.url}
                           alt={file.name}
@@ -167,7 +167,7 @@ export default function ProjectDetailPage() {
                     ) : null}
                     <a
                       href={file.url}
-                      className="text-accent underline text-lg font-semibold hover:text-gold transition-colors"
+                      className="text-accent underline text-lg font-semibold hover:text-black transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -199,7 +199,7 @@ export default function ProjectDetailPage() {
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 whileHover={{ scale: 1.03 }}
-                className="bg-yellow-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-gold hover:text-primary transition-colors"
+                className="bg-yellow-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-white hover:text-primary transition-colors"
                 onClick={() => router.push(`/projects/${project.id}/edit`)}
               >
                 Edit
