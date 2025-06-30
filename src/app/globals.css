@@ -1,18 +1,11 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e1e0c8;
-  --foreground: #1a2540;
-  --primary: #1a2540;
-  --accent: #e1e0c8;
-  --secondary: #5f6f7f;
-  --tertiary: #8897a1;
-  --highlight: #f9f3c6;
-  --olive: #6a6c60;
-  --dark: #414c59;
-  --bluegray: #485d66;
-  --navy: #142238;
-  --pale: #7f8aa5;
+  --background: #fff;
+  --foreground: #000;
+  --white: #fff;
+  --black: #000;
+  --gray: #888;
 }
 
 @theme inline {
@@ -24,18 +17,11 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #18181b;
-    --foreground: #e1e0c8;
-    --primary: #e1e0c8;
-    --accent: #1a2540;
-    --secondary: #5f6f7f;
-    --tertiary: #8897a1;
-    --highlight: #f9f3c6;
-    --olive: #6a6c60;
-    --dark: #414c59;
-    --bluegray: #485d66;
-    --navy: #142238;
-    --pale: #7f8aa5;
+    --background: #000;
+    --foreground: #fff;
+    --white: #fff;
+    --black: #000;
+    --gray: #888;
   }
 }
 
@@ -47,9 +33,9 @@ body {
 
 select,
 .filter-toggle {
-  background: #fff;
-  color: #1a2540;
-  border: 1px solid #1a2540;
+  background: var(--white);
+  color: var(--black);
+  border: 1px solid var(--black);
   border-radius: 0.75rem;
   padding: 0.5rem 1.5rem;
   font-size: 1rem;
@@ -59,8 +45,8 @@ select,
 @media (prefers-color-scheme: dark) {
   select,
   .filter-toggle {
-    background: #18181b;
-    color: #e1e0c8;
-    border: 1px solid #e1e0c8;
+    background: var(--black);
+    color: var(--white);
+    border: 1px solid var(--white);
   }
 }

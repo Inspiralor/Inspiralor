@@ -266,6 +266,16 @@ export default function ProfilePage() {
                 fill
                 className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
               />
+              <label className="absolute bottom-2 right-2 bg-white text-primary rounded-full px-3 py-1 text-xs font-bold cursor-pointer shadow-md border border-dark">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                />
+                {uploading ? "Uploading..." : "Change"}
+              </label>
             </div>
             <div className="flex-1 flex flex-col gap-3 text-lg">
               <div className="flex flex-col md:flex-row md:items-center gap-2">

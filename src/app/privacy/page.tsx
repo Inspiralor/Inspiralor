@@ -5,7 +5,7 @@ export default function PrivacyPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-white flex flex-col items-center px-4 py-10">
+      <main className="text-black min-h-screen bg-white flex flex-col items-center px-4 py-10 pt-24">
         <section className="w-full max-w-3xl bg-white rounded-xl shadow-lg p-8">
           <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
           <div className="text-gray-700 mb-4">ProjectAdopt Privacy Policy</div>
