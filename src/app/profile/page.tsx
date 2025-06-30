@@ -270,9 +270,9 @@ export default function ProfilePage() {
             <div className="flex-1 flex flex-col gap-3 text-lg">
               <div className="flex flex-col md:flex-row md:items-center gap-2">
                 <span className="text-3xl font-bold text-primary font-display">
-                  {profile?.name ? profile.name : "Profile"}
+                  {profile?.name || "Profile"}
                 </span>
-                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold text-sm font-mono">
+                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-gold text-gold text-sm font-mono">
                   ID: {profile?.unique_id || user?.id?.slice(0, 8)}
                 </span>
               </div>
@@ -280,32 +280,15 @@ export default function ProfilePage() {
                 Email: <span className="font-mono">{user?.email}</span>
               </div>
               <div className="mb-2">
-                <strong>Bio:</strong>{" "}
-                {profile?.bio || <span className="text-muted">No bio</span>}
+                <strong>Bio:</strong> {profile?.bio || <span className="text-muted">No bio</span>}
               </div>
               <div className="mb-2">
-                <strong>Interests:</strong>{" "}
-                {profile?.interests || (
-                  <span className="text-muted">No interests</span>
-                )}
+                <strong>Interests:</strong> {profile?.interests || <span className="text-muted">No interests</span>}
               </div>
               <div className="mb-2">
-                <strong>Portfolio:</strong>{" "}
-                {profile?.portfolio_links?.length ? (
-                  profile.portfolio_links.map((l, i) => (
-                    <a
-                      key={i}
-                      href={l}
-                      className="text-accent underline mr-2"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {l}
-                    </a>
-                  ))
-                ) : (
-                  <span className="text-muted">No links</span>
-                )}
+                <strong>Portfolio:</strong> {profile?.portfolio_links?.length ? profile.portfolio_links.map((l, i) => (
+                  <a key={i} href={l} className="text-accent underline mr-2" target="_blank" rel="noopener noreferrer">{l}</a>
+                )) : <span className="text-muted">No links</span>}
               </div>
               <div className="flex flex-wrap gap-4 mt-2">
                 {SOCIALS.map(({ key, label, icon: Icon }) =>
@@ -315,12 +298,10 @@ export default function ProfilePage() {
                       href={profile[key] as string}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray/20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
+                      className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-gold text-gold hover:bg-gold hover:text-primary transition-colors shadow"
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="hidden md:inline font-semibold text-sm">
-                        {label}
-                      </span>
+                      <span className="hidden md:inline font-semibold text-sm">{label}</span>
                     </a>
                   ) : null
                 )}

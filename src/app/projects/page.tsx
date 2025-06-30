@@ -113,63 +113,69 @@ function ProjectCard({
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, type: "spring" }}
-      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-3 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
+      className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
-      <div className="w-full flex justify-center mb-2">
-        <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
-          {imageFile ? (
-            <Image
-              src={imageFile.url}
-              alt={imageFile.name}
-              width={112}
-              height={112}
-              className="object-cover w-full h-full"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
-              <span>No Image</span>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <Link
-          href={`/projects/${project.id}`}
-          className="text-xl font-bold text-primary hover:text-accent hover:underline transition-colors"
-        >
-          {project.title}
-        </Link>
-        {user && !isOwnProject && (
-          <button
-            onClick={() => toggleFavourite(project.id)}
-            className="ml-2 text-gold hover:text-red-500 text-2xl focus:outline-none"
-            title={isFavourited ? "Unfavourite" : "Favourite"}
-          >
-            {isFavourited ? <FaHeart /> : <FaRegHeart />}
-          </button>
+      {/* Favourite Button */}
+      <button
+        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
+        onClick={() => toggleFavourite(project.id)}
+        aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
+      >
+        {isFavourited ? (
+          <FaHeart className="text-emerald-500 w-6 h-6" />
+        ) : (
+          <FaRegHeart className="text-gray-400 w-6 h-6" />
+        )}
+      </button>
+      {/* Image Section */}
+      <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200 flex items-center justify-center">
+        {imageFile ? (
+          <Image
+            src={imageFile.url}
+            alt={imageFile.name}
+            width={288}
+            height={224}
+            className="object-cover w-full h-full"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
+            No Image
+          </div>
         )}
       </div>
-      <div className="text-sm text-muted">{project.category}</div>
-      <div className="text-gray-200 line-clamp-2">{project.description}</div>
-      <div className="flex gap-2 flex-wrap text-xs mt-2">
-        {project.tags?.map((tag: string) => (
-          <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
-            #{tag}
-          </span>
-        ))}
-      </div>
-      <div className="text-xs text-muted mt-1">Status: {project.status}</div>
-      {author && (
-        <div className="text-xs mt-2">
-          by{" "}
+      {/* Info Section */}
+      <div className="flex-1 flex flex-col justify-between p-6">
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <Link
+              href={`/projects/${project.id}`}
+              className="text-lg font-bold text-black hover:text-accent hover:underline transition-colors line-clamp-1"
+            >
+              {project.title}
+            </Link>
+          </div>
+          <div className="text-xs text-gray-500 mb-1">{project.category}</div>
+          <div className="text-gray-800 text-sm line-clamp-2 mb-2">
+            {project.description}
+          </div>
+          <div className="flex gap-2 flex-wrap text-xs mb-2">
+            {project.tags?.map((tag: string) => (
+              <span key={tag} className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200">
+                #{tag}
+              </span>
+            ))}
+          </div>
+          <div className="text-xs text-gray-500 mb-2">Status: {project.status}</div>
+        </div>
+        <div className="flex items-center justify-between mt-2">
           <Link
-            href={`/profile/${author.unique_id}`}
-            className="text-gold hover:underline font-mono"
+            href={`/projects/${project.id}`}
+            className="text-emerald-600 underline text-xs font-semibold hover:text-accent transition-colors"
           >
-            {author.name || "User"} ({author.unique_id})
+            View Project
           </Link>
         </div>
-      )}
+      </div>
     </motion.div>
   );
 }
@@ -203,68 +209,67 @@ export default function ProjectsPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
+      <main className="min-h-screen bg-white pb-20">
         <section className="max-w-5xl mx-auto py-12 px-4">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-wrap gap-4 mb-8 items-center rounded-xl bg-glass border border-border shadow-glass px-6 py-4 backdrop-blur-md"
-          >
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-            >
-              {categories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white"
-            >
-              {statuses.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-            <div className="relative flex-1 max-w-xs">
-              <MagnifyingGlassIcon className="w-5 h-5 text-muted absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Filter by tag"
-                value={tag}
-                onChange={(e) => setTag(e.target.value)}
-                className="pl-10 border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted w-full"
-              />
+          <div className="mb-8">
+            <div className="uppercase text-xs font-bold text-gray-500 tracking-widest mb-2">Explore Projects</div>
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">Browse Our Open Initiatives</h1>
+            <div className="text-gray-700 text-sm md:text-base mb-6">Discover a variety of innovative projects seeking passionate collaborators to bring ideas to life.</div>
+            {/* Search and Filter Bar */}
+            <div className="flex flex-wrap gap-4 mb-8 items-center rounded-xl bg-white border border-gray-200 shadow px-6 py-4">
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700"
+              >
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700"
+              >
+                {statuses.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <div className="relative flex-1 max-w-xs">
+                <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Filter by tag"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                  className="pl-10 border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700 placeholder:text-gray-400 w-full"
+                />
+              </div>
             </div>
-          </motion.div>
+          </div>
           {loading ? (
             <div className="text-center text-muted py-10">Loading...</div>
           ) : (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.08 } },
-              }}
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
-              {projects.length === 0 && (
-                <div className="col-span-full text-center text-muted">
-                  No projects found.
+            <div>
+              {projects.length === 0 ? (
+                <div className="text-center text-muted">No projects found.</div>
+              ) : (
+                <div>
+                  {projects.map((p, i) => (
+                    <div key={p.id}>
+                      <ProjectCard project={p} delay={0.05 * i} />
+                      {i !== projects.length - 1 && (
+                        <hr className="my-8 border-gray-200" />
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
-              {projects.map((p, i) => (
-                <ProjectCard key={p.id} project={p} delay={0.05 * i} />
-              ))}
-            </motion.div>
+            </div>
           )}
         </section>
       </main>

@@ -8,6 +8,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { useInView } from 'react-intersection-observer';
 import { FaLinkedin, FaXTwitter, FaFacebook } from 'react-icons/fa6';
+import type { User } from "@supabase/supabase-js";
 
 function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
   return (
@@ -41,9 +42,19 @@ export default function Home() {
   const [totalProjects, setTotalProjects] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
   const [email, setEmail] = useState("");
+  const [user, setUser] = useState<User | null>(null);
   const section1Ref = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const { ref: inViewRef, inView: section1InView } = useInView({ threshold: 0.5 });
+
+  useEffect(() => {
+    // Get current user
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+    return () => { listener?.subscription.unsubscribe(); };
+  }, []);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -85,10 +96,12 @@ export default function Home() {
           <p className="text-white text-lg md:text-xl max-w-xl mb-8" style={{textShadow:'0 2px 8px rgba(0,0,0,0.3)'}}>
             Join our community to discover, collaborate, and breathe new life into unfinished projects. ProjectAdopt connects passionate individuals with innovative ideas waiting to be realized.
           </p>
-          <form className="flex gap-2 w-full max-w-md" onSubmit={handleSignup}>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" className="rounded px-4 py-2 flex-1 text-white placeholder-white bg-black/40 border border-white" />
-            <button type="submit" className="bg-emerald-400 text-white px-6 py-2 rounded">Sign up</button>
-          </form>
+          {!user && (
+            <form className="flex gap-2 w-full max-w-md" onSubmit={handleSignup}>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" className="rounded px-4 py-2 flex-1 text-white placeholder-white bg-black/40 border border-white" />
+              <button type="submit" className="bg-emerald-400 text-white px-6 py-2 rounded">Sign up</button>
+            </form>
+          )}
         </div>
         <div className="absolute top-0 left-0 w-full h-full bg-black/30" />
       </div>
@@ -212,11 +225,13 @@ export default function Home() {
       </div>
 
       {/* Section 6: Become a Community Member (black bg, white text) */}
-      <div className="w-full bg-black py-32 text-white flex flex-col items-center justify-center">
-        <h2 className="text-5xl font-extrabold mb-6 text-center">Become a Community Member</h2>
-        <p className="text-xl mb-8 text-center max-w-2xl">Join ProjectAdopt today and connect with passionate creators to bring abandoned ideas back to life.</p>
-        <button className="bg-emerald-400 text-white px-8 py-4 rounded text-lg font-semibold hover:bg-emerald-500 transition-colors" onClick={() => window.location.href = '/signup'}>Join Now</button>
-      </div>
+      {!user && (
+        <div className="w-full bg-black py-32 text-white flex flex-col items-center justify-center">
+          <h2 className="text-5xl font-extrabold mb-6 text-center">Become a Community Member</h2>
+          <p className="text-xl mb-8 text-center max-w-2xl">Join ProjectAdopt today and connect with passionate creators to bring abandoned ideas back to life.</p>
+          <button className="bg-emerald-400 text-white px-8 py-4 rounded text-lg font-semibold hover:bg-emerald-500 transition-colors" onClick={() => window.location.href = '/signup'}>Join Now</button>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="w-full bg-black text-white pt-12 pb-6 mt-0">

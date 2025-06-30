@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 type Project = {
   id: string;
@@ -29,10 +30,32 @@ function ProjectCard({
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
   );
+  const [user, setUser] = useState<{ id: string } | null>(null);
+  const [favourites, setFavourites] = useState<string[]>([]);
   const [author, setAuthor] = useState<{
     name: string;
     unique_id: string;
   } | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then((result) => {
+      setUser(result.data.user);
+    });
+  }, []);
+
+  useEffect(() => {
+    const fetchFavourites = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from("favourites")
+        .select("project_id")
+        .eq("user_id", user.id);
+      setFavourites(
+        (data || []).map((f: { project_id: string }) => f.project_id)
+      );
+    };
+    fetchFavourites();
+  }, [user]);
 
   useEffect(() => {
     const fetchAuthor = async () => {
@@ -47,67 +70,111 @@ function ProjectCard({
     fetchAuthor();
   }, [project.creator_id]);
 
+  const toggleFavourite = async (projectId: string) => {
+    if (!user) return;
+    if (favourites.includes(projectId)) {
+      await supabase
+        .from("favourites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("project_id", projectId);
+      setFavourites(favourites.filter((id) => id !== projectId));
+    } else {
+      await supabase
+        .from("favourites")
+        .insert([{ user_id: user.id, project_id: projectId }]);
+      setFavourites([...favourites, projectId]);
+    }
+  };
+
+  const isFavourited = favourites.includes(project.id);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, type: "spring" }}
-      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-3 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
+      className="relative flex bg-white/10 rounded-xl border border-border shadow p-0 gap-0 items-stretch mb-8 hover:shadow-lg transition-all overflow-hidden"
     >
-      <div className="w-full flex justify-center mb-2">
-        <div className="w-28 h-28 rounded-xl overflow-hidden border-2 border-gold bg-surface flex items-center justify-center">
-          {imageFile ? (
-            <Image
-              src={imageFile.url}
-              alt={imageFile.name}
-              width={112}
-              height={112}
-              className="object-cover w-full h-full"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
-              <span>No Image</span>
-            </div>
-          )}
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <Link
-          href={`/projects/${project.id}`}
-          className="text-xl font-bold text-primary hover:text-accent hover:underline transition-colors"
-        >
-          {project.title}
-        </Link>
-        <button
-          onClick={() => onDelete(project.id)}
-          className="ml-2 text-red-500 hover:text-red-700 text-lg px-2 py-1 rounded focus:outline-none border border-red-700 bg-red-900/30"
-          title="Delete"
-        >
-          Delete
-        </button>
-      </div>
-      <div className="text-sm text-muted">{project.category}</div>
-      <div className="text-gray-200 line-clamp-2">{project.description}</div>
-      <div className="flex gap-2 flex-wrap text-xs mt-2">
-        {project.tags?.map((tag: string) => (
-          <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
-            #{tag}
-          </span>
-        ))}
-      </div>
-      <div className="text-xs text-muted mt-1">Status: {project.status}</div>
-      <div className="text-xs mt-2">
-        by{" "}
-        {author ? (
-          <Link
-            href={`/profile/${author.unique_id}`}
-            className="text-gold hover:underline font-mono"
-          >
-            {author.name || "User"} ({author.unique_id})
-          </Link>
+      {/* Favourite Button */}
+      <button
+        className="absolute top-4 right-4 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-accent/80 transition-colors"
+        onClick={() => toggleFavourite(project.id)}
+        aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
+      >
+        {isFavourited ? (
+          <FaHeart className="text-emerald-500 w-6 h-6" />
         ) : (
-          <span>Loading...</span>
+          <FaRegHeart className="text-gray-400 w-6 h-6" />
         )}
+      </button>
+      {/* Image Section */}
+      <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-surface border-r border-gold flex items-center justify-center">
+        {imageFile ? (
+          <Image
+            src={imageFile.url}
+            alt={imageFile.name}
+            width={288}
+            height={224}
+            className="object-cover w-full h-full"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
+            No Image
+          </div>
+        )}
+      </div>
+      {/* Info Section */}
+      <div className="flex-1 flex flex-col justify-between p-6">
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <Link
+              href={`/projects/${project.id}`}
+              className="text-lg font-bold text-primary hover:text-accent hover:underline transition-colors line-clamp-1"
+            >
+              {project.title}
+            </Link>
+            <button
+              onClick={() => onDelete(project.id)}
+              className="ml-2 text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-700 bg-red-900/30"
+              title="Delete"
+            >
+              Delete
+            </button>
+          </div>
+          <div className="text-xs text-muted mb-1">{project.category}</div>
+          <div className="text-gray-200 text-sm line-clamp-2 mb-2">
+            {project.description}
+          </div>
+          <div className="flex gap-2 flex-wrap text-xs mb-2">
+            {project.tags?.map((tag: string) => (
+              <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
+                #{tag}
+              </span>
+            ))}
+          </div>
+          <div className="text-xs text-muted mb-2">Status: {project.status}</div>
+          <div className="text-xs mt-2">
+            by {author ? (
+              <Link
+                href={`/profile/${author.unique_id}`}
+                className="text-gold hover:underline font-mono"
+              >
+                {author.name || "User"} ({author.unique_id})
+              </Link>
+            ) : (
+              <span>Loading...</span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center justify-between mt-2">
+          <Link
+            href={`/projects/${project.id}`}
+            className="text-emerald-400 underline text-xs font-semibold hover:text-accent transition-colors"
+          >
+            View Project
+          </Link>
+        </div>
       </div>
     </motion.div>
   );
@@ -154,7 +221,7 @@ export default function MyProjectsPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 pb-20">
+      <main className="min-h-screen bg-white pb-20">
         <section className="max-w-5xl mx-auto py-12 px-4">
           <h1 className="text-3xl font-bold mb-6 text-primary font-display">
             My Projects
