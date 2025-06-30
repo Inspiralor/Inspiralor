@@ -34,7 +34,7 @@ export default function UserProfileViewPage() {
   const [bio, setBio] = useState("");
   const [interests, setInterests] = useState("");
   const [links, setLinks] = useState("");
-  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string>("");
   const [socials, setSocials] = useState<{ [key: string]: string }>({
     github: "",
     linkedin: "",
@@ -99,7 +99,7 @@ export default function UserProfileViewPage() {
       setBio(profile.bio || "");
       setInterests(profile.interests || "");
       setLinks((profile.portfolio_links || []).join(", "));
-      setProfileImage(profile.profile_image || null);
+      setProfileImage(profile.profile_image || "");
       setSocials({
         github: profile.github || "",
         linkedin: profile.linkedin || "",
@@ -164,15 +164,58 @@ export default function UserProfileViewPage() {
       <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4 pt-24">
         <div className="w-full max-w-2xl rounded-xl bg-glass shadow-glass p-8 border border-white backdrop-blur-md flex flex-col gap-8">
           <div className="flex flex-col md:flex-row gap-12 items-center w-full">
-            <div className="relative w-40 h-40">
+            <div className="relative w-52 h-52">
               <Image
-                src={typeof imageSrc === 'string' ? imageSrc : '/images/Icon.jpeg'}
+                src={profileImage || '/images/Icon.jpeg'}
                 alt="Profile"
-                width={160}
-                height={160}
-                className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
-                style={{ borderRadius: '50%' }}
+                width={208}
+                height={208}
+                className="object-cover border-4 border-white shadow-lg bg-white"
               />
+              {/* Show edit button overlay if user is viewing their own profile and not editing */}
+              {isOwnProfile && !editing && (
+                <button
+                  className="absolute bottom-2 right-2 bg-black text-muted rounded-full p-2 shadow-md border border-dark hover:bg-primary hover:text-white transition-colors"
+                  onClick={() => setEditing(true)}
+                  aria-label="Edit profile picture"
+                  type="button"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.25 2.25 0 1 1 3.182 3.182L7.5 20.213l-4.182.455.455-4.182L16.862 4.487z" />
+                  </svg>
+                </button>
+              )}
+              {/* Show image upload input in editing mode */}
+              {isOwnProfile && editing && (
+                <label className="absolute bottom-2 right-2 bg-black text-muted rounded-full px-3 py-1 text-xs font-bold cursor-pointer shadow-md border border-dark">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      if (!user || !e.target.files || e.target.files.length === 0) return;
+                      setUploading(true);
+                      const file = e.target.files[0];
+                      const filePath = `${user.id}/${file.name}`;
+                      const { error } = await supabase.storage
+                        .from("profile-images")
+                        .upload(filePath, file);
+                      if (error) {
+                        setUploading(false);
+                        alert("Image upload failed: " + error.message);
+                        return;
+                      }
+                      const { data } = supabase.storage
+                        .from("profile-images")
+                        .getPublicUrl(filePath);
+                      setProfileImage(data.publicUrl);
+                      setUploading(false);
+                    }}
+                    disabled={uploading}
+                  />
+                  {uploading ? "Uploading..." : "Change"}
+                </label>
+              )}
             </div>
             <div className="flex-1 flex flex-col gap-3 text-lg">
               <div className="flex flex-col md:flex-row md:items-center gap-2">
