@@ -120,7 +120,7 @@ function ProjectCard({
       className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
       {/* Favourite Button */}
-      {(!isOwnProject || allowOwnFavourite) && (
+      {!isOwnProject && (
         <button
           className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
           onClick={() => toggleFavourite(project.id)}

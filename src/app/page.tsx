@@ -232,30 +232,6 @@ export default function Home() {
           <button className="bg-emerald-400 text-white px-8 py-4 rounded text-lg font-semibold hover:bg-emerald-500 transition-colors" onClick={() => window.location.href = '/signup'}>Join Now</button>
         </div>
       )}
-
-      {/* Footer */}
-      <footer className="w-full bg-black text-white pt-12 pb-6 mt-0">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
-          <div className="w-full flex flex-col md:flex-row items-center justify-center gap-12 mb-4 relative">
-            <div className="flex flex-1 justify-center gap-12">
-              <Link href="/about">About Us</Link>
-              <Link href="/projects">Projects</Link>
-              <Link href="/contact">Contact</Link>
-            </div>
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-3">
-              <a href="#" aria-label="Facebook"><FaFacebook size={16} /></a>
-              <a href="#" aria-label="LinkedIn"><FaLinkedin size={16} /></a>
-              <a href="#" aria-label="X"><FaXTwitter size={16} /></a>
-            </div>
-          </div>
-          <hr className="border-white/40 mb-4 w-full" />
-          <div className="flex flex-col md:flex-row items-center justify-center text-sm gap-8">
-            <div>Copyright © 2025 ProjectAdopt. All rights reserved.</div>
-            <Link href="/terms">Terms and Conditions</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

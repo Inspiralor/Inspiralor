@@ -96,18 +96,20 @@ function ProjectCard({
       transition={{ delay, duration: 0.5, type: "spring" }}
       className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
-      {/* Favourite Button (always allowed for own projects) */}
-      <button
-        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
-        onClick={() => toggleFavourite(project.id)}
-        aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
-      >
-        {isFavourited ? (
-          <FaHeart className="text-emerald-500 w-6 h-6" />
-        ) : (
-          <FaRegHeart className="text-gray-400 w-6 h-6" />
-        )}
-      </button>
+      {/* Favourite Button (hide for own projects) */}
+      {!isOwnProject && (
+        <button
+          className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
+          onClick={() => toggleFavourite(project.id)}
+          aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
+        >
+          {isFavourited ? (
+            <FaHeart className="text-emerald-500 w-6 h-6" />
+          ) : (
+            <FaRegHeart className="text-gray-400 w-6 h-6" />
+          )}
+        </button>
+      )}
       {/* Image Section */}
       <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200 flex items-center justify-center">
         {imageFile ? (

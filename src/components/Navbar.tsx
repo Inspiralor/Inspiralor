@@ -53,7 +53,7 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
         <div className="max-w-7xl mx-auto px-8 md:px-32 py-4 flex items-center justify-between">
           <Link href="/" className="font-extrabold text-2xl tracking-wide text-black flex-shrink-0 min-w-[220px] font-display">Project Graveyard</Link>
           <div className="flex-1 flex justify-center">
-            <div className="flex flex-nowrap gap-8 text-base font-normal text-black items-center justify-center">
+            <div className="flex flex-nowrap gap-5 text-base font-medium text-black items-center justify-center">
               <Link href="/about" className="hover:text-accent px-2">About Us</Link>
               <Link href="/projects" className="hover:text-accent px-2">Projects</Link>
               <Link href="/projects/submit" className="hover:text-accent px-2">Submit</Link>
@@ -88,7 +88,7 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
       <Link href="/" className={`font-extrabold text-2xl tracking-wide ${textColor} flex-1 flex items-center`} style={{minWidth:'220px'}}>
         Project Graveyard
       </Link>
-      <div className={`flex gap-6 text-base font-medium ${textColor} justify-center flex-1`}>
+      <div className={`flex gap-5 text-base font-medium ${textColor} justify-center flex-1`}>
         <Link href="/about">About Us</Link>
         <Link href="/projects">Projects</Link>
         <Link href="/projects/submit">Submit</Link>
