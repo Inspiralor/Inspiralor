@@ -25,7 +25,7 @@ function ProjectCard({
 }: {
   project: Project;
   delay?: number;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
 }) {
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
@@ -88,17 +88,17 @@ function ProjectCard({
   };
 
   const isFavourited = favourites.includes(project.id);
-
+  const isOwnProject = user && user.id === project.creator_id;
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, type: "spring" }}
-      className="relative flex bg-white/10 rounded-xl border border-border shadow p-0 gap-0 items-stretch mb-8 hover:shadow-lg transition-all overflow-hidden"
+      className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
-      {/* Favourite Button */}
+      {/* Favourite Button (always allowed for own projects) */}
       <button
-        className="absolute top-4 right-4 z-10 bg-white/80 rounded-full p-2 shadow-md hover:bg-accent/80 transition-colors"
+        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
         onClick={() => toggleFavourite(project.id)}
         aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
       >
@@ -109,7 +109,7 @@ function ProjectCard({
         )}
       </button>
       {/* Image Section */}
-      <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-surface border-r border-gold flex items-center justify-center">
+      <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200 flex items-center justify-center">
         {imageFile ? (
           <Image
             src={imageFile.url}
@@ -119,7 +119,7 @@ function ProjectCard({
             className="object-cover w-full h-full"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
+          <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
             No Image
           </div>
         )}
@@ -130,30 +130,32 @@ function ProjectCard({
           <div className="flex items-center justify-between mb-2">
             <Link
               href={`/projects/${project.id}`}
-              className="text-lg font-bold text-primary hover:text-accent hover:underline transition-colors line-clamp-1"
+              className="text-lg font-bold text-black hover:text-accent hover:underline transition-colors line-clamp-1"
             >
               {project.title}
             </Link>
-            <button
-              onClick={() => onDelete(project.id)}
-              className="ml-2 text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-700 bg-red-900/30"
-              title="Delete"
-            >
-              Delete
-            </button>
+            {onDelete && (
+              <button
+                onClick={() => onDelete(project.id)}
+                className="ml-2 text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-700 bg-red-900/30"
+                title="Delete"
+              >
+                Delete
+              </button>
+            )}
           </div>
-          <div className="text-xs text-muted mb-1">{project.category}</div>
-          <div className="text-gray-200 text-sm line-clamp-2 mb-2">
+          <div className="text-xs text-gray-500 mb-1">{project.category}</div>
+          <div className="text-gray-800 text-sm line-clamp-2 mb-2">
             {project.description}
           </div>
           <div className="flex gap-2 flex-wrap text-xs mb-2">
             {project.tags?.map((tag: string) => (
-              <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
+              <span key={tag} className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200">
                 #{tag}
               </span>
             ))}
           </div>
-          <div className="text-xs text-muted mb-2">Status: {project.status}</div>
+          <div className="text-xs text-gray-500 mb-2">Status: {project.status}</div>
           <div className="text-xs mt-2">
             by {author ? (
               <Link
@@ -170,7 +172,7 @@ function ProjectCard({
         <div className="flex items-center justify-between mt-2">
           <Link
             href={`/projects/${project.id}`}
-            className="text-emerald-400 underline text-xs font-semibold hover:text-accent transition-colors"
+            className="text-emerald-600 underline text-xs font-semibold hover:text-accent transition-colors"
           >
             View Project
           </Link>
@@ -231,24 +233,16 @@ export default function MyProjectsPage() {
           ) : projects.length === 0 ? (
             <div className="text-muted">No projects found.</div>
           ) : (
-            <motion.div
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: {},
-                visible: { transition: { staggerChildren: 0.08 } },
-              }}
-              className="grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-            >
+            <div>
               {projects.map((p, i) => (
-                <ProjectCard
-                  key={p.id}
-                  project={p}
-                  delay={0.05 * i}
-                  onDelete={handleDelete}
-                />
+                <div key={p.id}>
+                  <ProjectCard project={p} delay={0.05 * i} onDelete={handleDelete} />
+                  {i !== projects.length - 1 && (
+                    <hr className="my-8 border-gray-200" />
+                  )}
+                </div>
               ))}
-            </motion.div>
+            </div>
           )}
         </section>
       </main>

@@ -50,15 +50,14 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
   if (isWhiteNavbar) {
     return (
       <nav className="w-full bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="text-xl font-extrabold text-black tracking-tight font-display">Project Graveyard</Link>
+        <div className="max-w-7xl mx-auto px-8 md:px-32 py-4 flex items-center justify-between">
+          <Link href="/" className="font-extrabold text-2xl tracking-wide text-black flex-shrink-0 min-w-[220px] font-display">Project Graveyard</Link>
           <div className="flex-1 flex justify-center">
-            <div className="flex items-center gap-8">
-              <Link href="/about" className="text-black hover:text-accent font-semibold px-2">About Us</Link>
-              <Link href="/projects" className="text-black hover:text-accent font-semibold px-2">Projects</Link>
-              <Link href="/projects/submit" className="text-black hover:text-accent font-semibold px-2">Submit</Link>
-              {user && <Link href="/my-projects" className="text-black hover:text-accent font-semibold px-2">My Projects</Link>}
-              <Link href="/contact" className="text-black hover:text-accent font-semibold px-2">Contact</Link>
+            <div className="flex flex-nowrap gap-8 text-base font-normal text-black items-center justify-center">
+              <Link href="/about" className="hover:text-accent px-2">About Us</Link>
+              <Link href="/projects" className="hover:text-accent px-2">Projects</Link>
+              <Link href="/projects/submit" className="hover:text-accent px-2">Submit</Link>
+              {user && <Link href="/my-projects" className="hover:text-accent px-2">My Projects</Link>}
             </div>
           </div>
           <div className="flex items-center gap-4">

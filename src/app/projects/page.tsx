@@ -42,9 +42,13 @@ type Project = {
 function ProjectCard({
   project,
   delay = 0,
+  onDelete,
+  allowOwnFavourite = false,
 }: {
   project: Project;
   delay?: number;
+  onDelete?: (id: string) => void;
+  allowOwnFavourite?: boolean;
 }) {
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
@@ -116,17 +120,19 @@ function ProjectCard({
       className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
       {/* Favourite Button */}
-      <button
-        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
-        onClick={() => toggleFavourite(project.id)}
-        aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
-      >
-        {isFavourited ? (
-          <FaHeart className="text-emerald-500 w-6 h-6" />
-        ) : (
-          <FaRegHeart className="text-gray-400 w-6 h-6" />
-        )}
-      </button>
+      {(!isOwnProject || allowOwnFavourite) && (
+        <button
+          className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
+          onClick={() => toggleFavourite(project.id)}
+          aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
+        >
+          {isFavourited ? (
+            <FaHeart className="text-emerald-500 w-6 h-6" />
+          ) : (
+            <FaRegHeart className="text-gray-400 w-6 h-6" />
+          )}
+        </button>
+      )}
       {/* Image Section */}
       <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200 flex items-center justify-center">
         {imageFile ? (
@@ -220,10 +226,10 @@ export default function ProjectsPage() {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700"
+                className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700 appearance-none"
               >
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>
+                  <option key={cat} value={cat} className="text-gray-700 bg-white">
                     {cat}
                   </option>
                 ))}
@@ -231,10 +237,10 @@ export default function ProjectsPage() {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700"
+                className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700 appearance-none"
               >
                 {statuses.map((s) => (
-                  <option key={s} value={s}>
+                  <option key={s} value={s} className="text-gray-700 bg-white">
                     {s}
                   </option>
                 ))}
