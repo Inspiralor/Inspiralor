@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 type Project = {
   id: string;
@@ -188,6 +189,9 @@ export default function MyProjectsPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const router = useRouter();
 
   useEffect(() => {
     supabase.auth.getUser().then((result) => {
@@ -198,15 +202,22 @@ export default function MyProjectsPage() {
   useEffect(() => {
     if (!user) return;
     const fetchProjects = async () => {
-      const { data } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from("projects")
         .select("*")
         .eq("creator_id", user.id);
-      setProjects(data || []);
+      if (error) {
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
+      setTotalPages(Math.max(1, Math.ceil((data?.length || 0) / 10)));
+      setProjects((data || []).slice((page - 1) * 10, page * 10));
       setLoading(false);
     };
     fetchProjects();
-  }, [user]);
+  }, [user, page]);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this project?")) return;
@@ -246,6 +257,24 @@ export default function MyProjectsPage() {
               ))}
             </div>
           )}
+          {/* Pagination Controls */}
+          <div className="flex justify-center gap-2 mt-8">
+            <button
+              className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-50"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2">Page {page} of {totalPages}</span>
+            <button
+              className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-50"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
         </section>
       </main>
     </>

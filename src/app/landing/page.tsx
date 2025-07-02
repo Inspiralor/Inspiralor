@@ -8,6 +8,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { useInView } from 'react-intersection-observer';
 import { FaLinkedin, FaXTwitter, FaFacebook, FaHeart, FaRegHeart } from 'react-icons/fa6';
+import { useRouter } from "next/navigation";
 
 // Types
 interface ProjectFile {
@@ -19,6 +20,7 @@ interface Project {
   title: string;
   category: string;
   files?: ProjectFile[];
+  creator_id?: string;
 }
 interface Creator {
   id: string;
@@ -72,6 +74,7 @@ export default function Landing() {
   const [favourites, setFavourites] = useState<string[]>([]);
   // Search state
   const [search, setSearch] = useState("");
+  const router = useRouter();
 
   // Fetch user and profile
   useEffect(() => {
@@ -166,24 +169,33 @@ export default function Landing() {
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-center">
           Welcome Back{profile?.name ? `, ${profile.name}` : ""}!
         </h1>
-        <div className="w-full max-w-xl">
+        <div className="w-full max-w-xl flex gap-2">
           <input
             type="text"
             className="w-full px-6 py-4 rounded-xl bg-gray-800 text-lg text-white placeholder-gray-400 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-lg"
             placeholder="Search for projects, creators, type..."
             value={search}
             onChange={e => setSearch(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { router.push(`/projects?search=${encodeURIComponent(search)}`); } }}
           />
+          <button
+            className="px-6 py-4 rounded-xl bg-emerald-500 text-white font-bold text-lg hover:bg-emerald-600 transition-colors shadow-lg"
+            onClick={() => router.push(`/projects?search=${encodeURIComponent(search)}`)}
+            aria-label="Search"
+          >
+            Search
+          </button>
         </div>
       </section>
 
       {/* Section 2: Latest New Projects */}
       <section className="max-w-6xl mx-auto py-12">
-        <h2 className="text-3xl font-bold mb-8">Latest New Projects</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">Latest New Projects</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
           {projects.map((project, i) => {
             const imageFile = project.files?.find(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
             const isFavourited = favourites.includes(project.id);
+            const isOwnProject = user && user.id === project.creator_id;
             return (
               <div key={project.id} className="relative bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
                 <div className="relative w-full h-48 bg-gray-900">
@@ -192,12 +204,15 @@ export default function Landing() {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">No Image</div>
                   )}
-                  <button
-                    className="absolute bottom-3 right-3 bg-black/70 rounded-full p-2"
-                    onClick={() => toggleFavourite(project.id)}
-                  >
-                    {isFavourited ? <FaHeart className="text-emerald-400 w-6 h-6" /> : <FaRegHeart className="text-white w-6 h-6" />}
-                  </button>
+                  {/* Favourite Button (hide for own projects) */}
+                  {!isOwnProject && (
+                    <button
+                      className="absolute bottom-3 right-3 bg-black/70 rounded-full p-2"
+                      onClick={() => toggleFavourite(project.id)}
+                    >
+                      {isFavourited ? <FaHeart className="text-emerald-400 w-6 h-6" /> : <FaRegHeart className="text-white w-6 h-6" />}
+                    </button>
+                  )}
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
                   <div className="text-lg font-bold mb-1 line-clamp-1">{project.title}</div>
@@ -211,41 +226,44 @@ export default function Landing() {
 
       {/* Section 3: Top Creators */}
       <section className="max-w-6xl mx-auto py-12">
-        <h2 className="text-3xl font-bold mb-8">Top Creators</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">Top Creators</h2>
         <div className="flex flex-col gap-8">
-          {[0, 1, 2].map(row => (
-            <motion.div
-              key={row}
-              className="flex gap-6"
-              animate={{
-                x: [0, row % 2 === 0 ? -240 : 240, 0],
-              }}
-              transition={{
-                repeat: Infinity,
-                duration: 16,
-                ease: "linear",
-                repeatType: "loop",
-                delay: row * 0.5,
-              }}
-              style={{ flexDirection: row % 2 === 0 ? "row" : "row-reverse" }}
-            >
-              {creators.slice(row * 6, row * 6 + 6).map((creator, i) => (
-                <div key={creator.id + i} className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px]">
-                  <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
-                    <Image
-                      src={creator.profile_image || "/images/Icon.jpeg"}
-                      alt={creator.name || "User"}
-                      width={64}
-                      height={64}
-                      className="object-cover w-full h-full"
-                    />
+          {[0, 1, 2].map(row => {
+            const [isHovered, setIsHovered] = useState(false);
+            return (
+              <motion.div
+                key={row}
+                className="flex gap-6"
+                animate={isHovered ? { x: 0 } : { x: [0, row % 2 === 0 ? -240 : 240, 0] }}
+                transition={isHovered ? undefined : {
+                  repeat: Infinity,
+                  duration: 16,
+                  ease: "linear",
+                  repeatType: "loop",
+                  delay: row * 0.5,
+                }}
+                style={{ flexDirection: row % 2 === 0 ? "row" : "row-reverse" }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+              >
+                {creators.slice(row * 6, row * 6 + 6).map((creator, i) => (
+                  <div key={creator.id + i} className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px]">
+                    <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
+                      <Image
+                        src={creator.profile_image || "/images/Icon.jpeg"}
+                        alt={creator.name || "User"}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div className="font-bold text-lg mb-1 text-center">{creator.name || "Unnamed"}</div>
+                    <div className="text-sm text-gray-400 mb-1">{creator.count} posts</div>
                   </div>
-                  <div className="font-bold text-lg mb-1 text-center">{creator.name || "Unnamed"}</div>
-                  <div className="text-sm text-gray-400 mb-1">{creator.count} posts</div>
-                </div>
-              ))}
-            </motion.div>
-          ))}
+                ))}
+              </motion.div>
+            );
+          })}
         </div>
       </section>
     </div>

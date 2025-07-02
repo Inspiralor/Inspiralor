@@ -7,6 +7,7 @@ import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const categories = [
   "All",
@@ -192,25 +193,46 @@ export default function ProjectsPage() {
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("All");
   const [tag, setTag] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search") || "";
 
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
       let query = supabase
         .from("projects")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (category !== "All") query = query.eq("category", category);
-      if (status !== "All") query = query.eq("status", status);
-      const { data } = await query;
+        .select("*", { count: "exact" });
+      // Fetch all projects, then filter/shuffle/paginate client-side
+      const { data, error, count } = await query;
+      if (error) {
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
       let filtered = data || [];
-      if (tag)
-        filtered = filtered.filter((p: Project) => p.tags?.includes(tag));
-      setProjects(filtered);
+      if (search) {
+        const s = search.toLowerCase();
+        filtered = filtered.filter(
+          (p: any) =>
+            p.title.toLowerCase().includes(s) ||
+            p.description?.toLowerCase().includes(s) ||
+            (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(s)))
+        );
+      }
+      // Shuffle
+      for (let i = filtered.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+      }
+      setTotalPages(Math.max(1, Math.ceil(filtered.length / 10)));
+      setProjects(filtered.slice((page - 1) * 10, page * 10));
       setLoading(false);
     };
     fetchProjects();
-  }, [category, status, tag]);
+  }, [search, page]);
 
   return (
     <>
@@ -277,6 +299,24 @@ export default function ProjectsPage() {
               )}
             </div>
           )}
+          {/* Pagination Controls */}
+          <div className="flex justify-center gap-2 mt-8">
+            <button
+              className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-50"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <span className="px-4 py-2">Page {page} of {totalPages}</span>
+            <button
+              className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-50"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+            >
+              Next
+            </button>
+          </div>
         </section>
       </main>
     </>
