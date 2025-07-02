@@ -48,7 +48,7 @@ export default function RootLayout({
             </div>
             <hr className="border-white/40 mb-4 w-full" />
             <div className="flex flex-col md:flex-row items-center justify-center text-sm gap-8">
-              <div>Copyright © 2025 ProjectAdopt. All rights reserved.</div>
+              <div>Copyright © 2025 Project Graveyard. All rights reserved.</div>
               <Link href="/terms">Terms and Conditions</Link>
               <Link href="/privacy">Privacy Policy</Link>
             </div>

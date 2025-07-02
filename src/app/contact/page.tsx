@@ -8,8 +8,8 @@ export default function ContactPage() {
       <main className="min-h-screen bg-white flex flex-col items-center px-4 py-10 pt-24">
         <section className="w-full max-w-6xl flex flex-col md:flex-row gap-8 items-center mb-12">
           <div className="flex-1">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-black">Get in Touch with ProjectAdopt</h1>
-            <p className="text-gray-700 mb-8">Interested in collaborating or have questions? Reach out to our passionate team at ProjectAdopt. We are here to help you bring your ideas to life. Contact us via email, phone, or visit us at our San Francisco office. Join our community and start transforming forgotten projects today!</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-black">Get in Touch with Project Graveyard</h1>
+            <p className="text-gray-700 mb-8">Interested in collaborating or have questions? Reach out to our passionate team at Project Graveyard. We are here to help you bring your ideas to life. Contact us via email, phone, or visit us at our San Francisco office. Join our community and start transforming forgotten projects today!</p>
             <div className="grid grid-cols-2 gap-8 mb-8">
               <div>
                 <div className="text-3xl font-bold text-black">100 k</div>
@@ -37,7 +37,7 @@ export default function ContactPage() {
           <div className="flex flex-col items-start">
             <span className="text-3xl mb-2">✉️</span>
             <h2 className="font-bold text-lg mb-2 text-black">Get in Touch</h2>
-            <p className="text-gray-700 text-sm mb-2">Reach out to the ProjectAdopt team for collaboration opportunities, questions, or support. You can fill out our contact form, email us directly at <a href='mailto:contact@projectadopt.com' className='text-emerald-600 underline'>contact@projectadopt.com</a>, or connect with us on social media. We look forward to hearing from you and exploring how we can work together to bring ideas to life.</p>
+            <p className="text-gray-700 text-sm mb-2">Reach out to the Project Graveyard team for collaboration opportunities, questions, or support. You can fill out our contact form, email us directly at <a href='mailto:contact@Project Graveyard.com' className='text-emerald-600 underline'>contact@Project Graveyard.com</a>, or connect with us on social media. We look forward to hearing from you and exploring how we can work together to bring ideas to life.</p>
           </div>
           <div className="flex flex-col items-start">
             <span className="text-3xl mb-2">📞</span>

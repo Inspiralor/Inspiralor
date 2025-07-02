@@ -12,7 +12,7 @@ export default function AboutPage() {
           <div className="flex-1">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-black">Our Journey and Mission</h1>
             <p className="text-gray-700 mb-4">
-              At ProjectAdopt, we are committed to breathing new life into abandoned projects by connecting creators with passionate individuals. Our platform emphasizes community, innovation, and transparency, fostering a vibrant ecosystem where ideas flourish and turn into successful realities. Join us in transforming forgotten concepts into impactful projects and be part of a movement driven by creativity and passion.
+              At Project Graveyard, we are committed to breathing new life into abandoned projects by connecting creators with passionate individuals. Our platform emphasizes community, innovation, and transparency, fostering a vibrant ecosystem where ideas flourish and turn into successful realities. Join us in transforming forgotten concepts into impactful projects and be part of a movement driven by creativity and passion.
             </p>
           </div>
           <div className="flex-1 flex justify-center">
@@ -23,7 +23,7 @@ export default function AboutPage() {
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-gray-500 mb-2 uppercase tracking-wider">Meet the Team</h2>
             <h3 className="text-3xl font-bold mb-4 text-black">Ready to Collaborate?</h3>
-            <p className="text-gray-700 mb-6">Discover the team that powers ProjectAdopt and drives innovation in project revival.</p>
+            <p className="text-gray-700 mb-6">Discover the team that powers Project Graveyard and drives innovation in project revival.</p>
             <button className="border border-emerald-400 text-emerald-600 px-4 py-2 rounded hover:bg-emerald-50 transition-colors">Explore Projects</button>
           </div>
           <div className="flex-1 flex flex-col gap-8">

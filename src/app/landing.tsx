@@ -77,7 +77,7 @@ export default function Landing() {
             <span className="underline decoration-4">Revive</span> Adopt, Remix,<br />and Revive<br />Unfinished Ideas
           </h1>
           <p className="text-white text-lg md:text-xl max-w-xl mb-8" style={{textShadow:'0 2px 8px rgba(0,0,0,0.3)'}}>
-            Join our community to discover, collaborate, and breathe new life into unfinished projects. ProjectAdopt connects passionate individuals with innovative ideas waiting to be realized.
+            Join our community to discover, collaborate, and breathe new life into unfinished projects. Project Graveyard connects passionate individuals with innovative ideas waiting to be realized.
           </p>
         </div>
         <div className="absolute top-0 left-0 w-full h-full bg-black/30" />
@@ -115,7 +115,7 @@ export default function Landing() {
               <Image src="/images/HomePage/Section4/ReviveAndLaunch.png" alt="Revive and Launch" width={350} height={220} className="rounded-t-xl" />
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-2">Revive and Launch</h3>
-                <p className="text-base mb-4">Transform forgotten ideas into successful endeavors with the support of the ProjectAdopt community. Witness the impact of your contributions as projects come to life and make a difference.</p>
+                <p className="text-base mb-4">Transform forgotten ideas into successful endeavors with the support of the Project Graveyard community. Witness the impact of your contributions as projects come to life and make a difference.</p>
                 <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
               </div>
             </div>
@@ -135,20 +135,10 @@ export default function Landing() {
             </div>
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col items-center">
-                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Dr. Anya Sharma" width={250} height={250} className="rounded mb-4 object-cover" />
-                <h4 className="text-xl font-bold mb-1">Dr. Anya Sharma</h4>
-                <div className="text-base font-semibold mb-1">Chief Innovation Officer</div>
-                <p className="text-base text-center mb-2">Anya leads the innovation strategy, ensuring ProjectAdopt remains at the forefront of collaborative technology.</p>
-                <div className="flex gap-2 mt-2">
-                  <a href="#" className="text-black"><FaLinkedin size={20} /></a>
-                  <a href="#" className="text-black"><FaXTwitter size={20} /></a>
-                </div>
-              </div>
-              <div className="flex flex-col items-center">
-                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Ben Carter" width={250} height={250} className="rounded mb-4 object-cover" />
-                <h4 className="text-xl font-bold mb-1">Ben Carter</h4>
-                <div className="text-base font-semibold mb-1">Lead Developer</div>
-                <p className="text-base text-center mb-2">Ben oversees the technical development of the platform, ensuring a seamless and user-friendly experience.</p>
+                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Hok Wai Chan" width={250} height={250} className="rounded mb-4 object-cover" />
+                <h4 className="text-xl font-bold mb-1">Hok Wai Chan</h4>
+                <div className="text-base font-semibold mb-1">Software Developer</div>
+                <p className="text-base text-center mb-2">Hok Wai is the developer and co-founder of Project Graveyard, bringing the technical vision to life through robust engineering and system design.</p>
                 <div className="flex gap-2 mt-2">
                   <a href="#" className="text-black"><FaLinkedin size={20} /></a>
                   <a href="#" className="text-black"><FaXTwitter size={20} /></a>
