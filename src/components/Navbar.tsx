@@ -47,11 +47,18 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
 
   const profileLink = user ? `/profile/${user.id}` : '/profile';
 
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (user) {
+      e.preventDefault();
+      router.push('/landing');
+    }
+  };
+
   if (isWhiteNavbar) {
     return (
       <nav className="w-full bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-8 md:px-32 py-4 flex items-center justify-between">
-          <Link href="/" className="font-extrabold text-2xl tracking-wide text-black flex-shrink-0 min-w-[220px] font-display">Project Graveyard</Link>
+          <Link href="/" className="font-extrabold text-2xl tracking-wide text-black flex-shrink-0 min-w-[220px] font-display" onClick={handleLogoClick}>Project Graveyard</Link>
           <div className="flex flex-nowrap gap-5 text-base font-medium text-black items-center justify-center flex-grow">
             <Link href="/about" className="hover:text-accent px-2">About Us</Link>
             <Link href="/projects" className="hover:text-accent px-2">Projects</Link>
@@ -83,7 +90,7 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
       className={`fixed top-0 left-0 w-full z-50 flex items-center ${showTransparent ? 'bg-transparent' : 'bg-black'} transition-colors px-8 md:px-32 py-4`}
       style={showTransparent ? { background: 'none', boxShadow: 'none', border: 'none' } : { background: 'black' }}
     >
-      <Link href="/" className={`font-extrabold text-2xl tracking-wide ${textColor} flex items-center`} style={{minWidth:'220px'}}>
+      <Link href="/" className={`font-extrabold text-2xl tracking-wide ${textColor} flex items-center`} style={{minWidth:'220px'}} onClick={handleLogoClick}>
         Project Graveyard
       </Link>
       <div className={`flex gap-5 text-base font-medium ${textColor} justify-center flex-grow`}>

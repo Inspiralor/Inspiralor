@@ -161,7 +161,7 @@ export default function SubmitProjectPage({ isEdit = false }: { isEdit?: boolean
         setError(insertError.message);
       } else {
         setSuccess("Project submitted successfully!");
-        setTimeout(() => router.push("/"), 1500);
+        setTimeout(() => router.push("/landing"), 1500);
       }
     }
   };
