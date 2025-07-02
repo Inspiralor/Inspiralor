@@ -68,16 +68,16 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
           <div className="flex items-center gap-4">
             {user ? (
               <>
-                <Link href={profileLink} className="bg-emerald-400 text-black font-semibold px-6 py-2 rounded hover:bg-emerald-500 transition-colors">Profile</Link>
+                <Link href={profileLink} className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors">Profile</Link>
                 <button
                   onClick={handleSignOut}
-                  className="bg-red-500 text-white font-semibold px-6 py-2 rounded hover:bg-red-700 transition-colors"
+                  className="bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-colors"
                 >
                   Sign Out
                 </button>
               </>
             ) : (
-              <Link href="/signup" className="bg-emerald-400 text-black font-bold px-4 py-2 rounded hover:bg-emerald-500 transition-colors">Get Started</Link>
+              <Link href="/signup" className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors">Get Started</Link>
             )}
           </div>
         </div>
@@ -102,10 +102,10 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <Link href={profileLink} className="bg-emerald-400 text-white px-6 py-2 rounded font-semibold hover:bg-emerald-500 transition-colors">Profile</Link>
+            <Link href={profileLink} className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors">Profile</Link>
             <button
               onClick={handleSignOut}
-              className="bg-red-500 text-white px-6 py-2 rounded font-semibold hover:bg-red-700 transition-colors"
+              className="bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-colors"
             >
               Sign Out
             </button>
@@ -113,7 +113,7 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
         ) : !hideGetStarted && (
           <button
             onClick={() => router.push('/login')}
-            className="bg-emerald-400 text-white px-6 py-2 rounded font-semibold hover:bg-emerald-500 transition-colors"
+            className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors"
           >
             Get Started
           </button>

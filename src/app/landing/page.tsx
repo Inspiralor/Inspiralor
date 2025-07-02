@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import { useInView } from 'react-intersection-observer';
 import { FaLinkedin, FaXTwitter, FaFacebook, FaHeart, FaRegHeart } from 'react-icons/fa6';
 import { useRouter } from "next/navigation";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 // Types
 interface ProjectFile {
@@ -169,21 +170,21 @@ export default function Landing() {
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-center">
           Welcome Back{profile?.name ? `, ${profile.name}` : ""}!
         </h1>
-        <div className="w-full max-w-xl flex gap-2">
+        <div className="w-full max-w-md relative">
           <input
             type="text"
-            className="w-full px-6 py-4 rounded-xl bg-gray-800 text-lg text-white placeholder-gray-400 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-lg"
+            className="w-full pl-4 pr-12 py-2 rounded-lg bg-gray-800 text-base text-white placeholder-gray-400 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-lg"
             placeholder="Search for projects, creators, type..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { router.push(`/projects?search=${encodeURIComponent(search)}`); } }}
           />
           <button
-            className="px-6 py-4 rounded-xl bg-emerald-500 text-white font-bold text-lg hover:bg-emerald-600 transition-colors shadow-lg"
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors"
             onClick={() => router.push(`/projects?search=${encodeURIComponent(search)}`)}
             aria-label="Search"
           >
-            Search
+            <MagnifyingGlassIcon className="w-5 h-5 text-white" />
           </button>
         </div>
       </section>
@@ -200,7 +201,9 @@ export default function Landing() {
               <div key={project.id} className="relative bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
                 <div className="relative w-full h-48 bg-gray-900">
                   {imageFile ? (
-                    <Image src={imageFile.url} alt={imageFile.name} fill className="object-cover" />
+                    <Link href={`/projects/${project.id}`}>
+                      <Image src={imageFile.url} alt={imageFile.name} fill className="object-cover cursor-pointer hover:opacity-80 transition-opacity" />
+                    </Link>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">No Image</div>
                   )}
@@ -215,7 +218,9 @@ export default function Landing() {
                   )}
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
-                  <div className="text-lg font-bold mb-1 line-clamp-1">{project.title}</div>
+                  <Link href={`/projects/${project.id}`} className="text-lg font-bold mb-1 line-clamp-1 hover:text-emerald-400 transition-colors cursor-pointer">
+                    {project.title}
+                  </Link>
                   <div className="text-sm text-emerald-400 mb-2">{project.category}</div>
                 </div>
               </div>
@@ -229,43 +234,72 @@ export default function Landing() {
         <h2 className="text-3xl font-bold mb-8 text-center">Top Creators</h2>
         <div className="flex flex-col gap-8">
           {[0, 1, 2].map(row => {
-            const [isHovered, setIsHovered] = useState(false);
+            // Infinite loop animation for creators row
+            const [x, setX] = useState(0);
+            const speed = 0.2; // px per frame (slower)
+            const direction = row % 2 === 0 ? -1 : 1;
+            const rowRef = useRef<HTMLDivElement>(null);
+            useEffect(() => {
+              let frame: any;
+              const animate = () => {
+                if (rowRef.current) {
+                  setX(prev => {
+                    const width = rowRef.current ? rowRef.current.scrollWidth / 2 : 0;
+                    let next = prev + direction * speed;
+                    if (direction === -1 && Math.abs(next) >= width) next = 0;
+                    if (direction === 1 && next >= 0) next = -width;
+                    return next;
+                  });
+                }
+                frame = requestAnimationFrame(animate);
+              };
+              frame = requestAnimationFrame(animate);
+              return () => cancelAnimationFrame(frame);
+            }, [direction]);
+            // Duplicate creators for seamless loop
+            const rowCreators = creators.slice(row * 6, row * 6 + 6);
             return (
-              <motion.div
+              <div
                 key={row}
-                className="flex gap-6"
-                animate={isHovered ? { x: 0 } : { x: [0, row % 2 === 0 ? -240 : 240, 0] }}
-                transition={isHovered ? undefined : {
-                  repeat: Infinity,
-                  duration: 16,
-                  ease: "linear",
-                  repeatType: "loop",
-                  delay: row * 0.5,
-                }}
-                style={{ flexDirection: row % 2 === 0 ? "row" : "row-reverse" }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
+                className="relative overflow-hidden"
+                style={{ width: '100%' }}
               >
-                {creators.slice(row * 6, row * 6 + 6).map((creator, i) => (
-                  <div key={creator.id + i} className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px]">
-                    <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
-                      <Image
-                        src={creator.profile_image || "/images/Icon.jpeg"}
-                        alt={creator.name || "User"}
-                        width={64}
-                        height={64}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div className="font-bold text-lg mb-1 text-center">{creator.name || "Unnamed"}</div>
-                    <div className="text-sm text-gray-400 mb-1">{creator.count} posts</div>
-                  </div>
-                ))}
-              </motion.div>
+                {/* Fade overlays */}
+                <div className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10" style={{background: 'linear-gradient(to right, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)'}} />
+                <div className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10" style={{background: 'linear-gradient(to left, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)'}} />
+                <div
+                  ref={rowRef}
+                  className="flex gap-6"
+                  style={{
+                    transform: `translateX(${x}px)`,
+                    width: `${rowCreators.length * 2 * 220}px`,
+                  }}
+                >
+                  {[...rowCreators, ...rowCreators].map((creator, i) => (
+                    <Link
+                      key={creator.id + i}
+                      href={`/profile/${creator.id}`}
+                      className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px] cursor-pointer hover:bg-emerald-900 transition-colors"
+                    >
+                      <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
+                        <Image
+                          src={creator.profile_image || "/images/Icon.jpeg"}
+                          alt={creator.name || "User"}
+                          width={64}
+                          height={64}
+                          className="object-cover w-full h-full"
+                        />
+                      </div>
+                      <div className="font-bold text-lg mb-1 text-center">{creator.name || "Unnamed"}</div>
+                      <div className="text-sm text-gray-400 mb-1">{creator.count} posts</div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>
       </section>
     </div>
   );
-} 
+}

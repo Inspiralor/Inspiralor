@@ -8,6 +8,7 @@ import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 const categories = [
   "All",
@@ -300,21 +301,23 @@ export default function ProjectsPage() {
             </div>
           )}
           {/* Pagination Controls */}
-          <div className="flex justify-center gap-2 mt-8">
+          <div className="flex justify-center items-center gap-2 mt-8">
             <button
-              className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
+              aria-label="Previous Page"
             >
-              Previous
+              <ChevronLeftIcon className="w-5 h-5" />
             </button>
-            <span className="px-4 py-2">Page {page} of {totalPages}</span>
+            <span className="px-4 py-2 text-black font-bold">Page {page} of {totalPages}</span>
             <button
-              className="px-4 py-2 rounded bg-gray-700 text-white disabled:opacity-50"
+              className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
+              aria-label="Next Page"
             >
-              Next
+              <ChevronRightIcon className="w-5 h-5" />
             </button>
           </div>
         </section>
