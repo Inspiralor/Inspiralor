@@ -165,7 +165,7 @@ export default function Home() {
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-2">Browse Available Projects</h3>
                 <p className="text-base mb-4">Explore a diverse range of abandoned projects seeking new life. Filter by category, skill set, or interest to find the perfect opportunity to contribute and collaborate.</p>
-                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-3 py-2 rounded">Learn More</button>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow p-0 flex flex-col">
@@ -173,7 +173,7 @@ export default function Home() {
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-2">Connect and Collaborate</h3>
                 <p className="text-base mb-4">Our platform provides integrated tools for seamless communication, resource sharing, and progress tracking. Connect with fellow collaborators and work together to bring projects to fruition.</p>
-                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-3 py-2 rounded">Learn More</button>
               </div>
             </div>
             <div className="bg-white rounded-xl shadow p-0 flex flex-col">
@@ -181,7 +181,7 @@ export default function Home() {
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-2">Revive and Launch</h3>
                 <p className="text-base mb-4">Transform forgotten ideas into successful endeavors with the support of the Project Graveyard community. Witness the impact of your contributions as projects come to life and make a difference.</p>
-                <button className="mt-auto border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+                <button className="mt-auto border border-emerald-400 text-emerald-400 px-3 py-2 rounded">Learn More</button>
               </div>
             </div>
           </div>
@@ -196,7 +196,7 @@ export default function Home() {
               <div className="uppercase text-sm font-bold mb-2">Our Team</div>
               <h2 className="text-4xl font-extrabold mb-2">Meet Innovators</h2>
               <p className="text-lg mb-8">Dedicated to connecting creators with unfinished ideas, fostering collaboration and innovation.</p>
-              <button className="border border-emerald-400 text-emerald-400 px-6 py-2 rounded">Learn More</button>
+              <button className="border border-emerald-400 text-emerald-400 px-3 py-2 rounded">Learn More</button>
             </div>
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col items-center">
@@ -215,13 +215,11 @@ export default function Home() {
       </div>
 
       {/* Section 6: Become a Community Member (black bg, white text) */}
-      {!user && (
-        <div className="w-full bg-black py-32 text-white flex flex-col items-center justify-center">
-          <h2 className="text-5xl font-extrabold mb-6 text-center">Become a Community Member</h2>
-          <p className="text-xl mb-8 text-center max-w-2xl">Join Project Graveyard today and connect with passionate creators to bring abandoned ideas back to life.</p>
-          <button className="bg-emerald-400 text-white px-8 py-4 rounded text-lg font-semibold hover:bg-emerald-500 transition-colors" onClick={() => window.location.href = '/signup'}>Join Now</button>
-        </div>
-      )}
+      <div className="w-full bg-black py-32 text-white flex flex-col items-center justify-center">
+        <h2 className="text-5xl font-extrabold mb-6 text-center">Become a Community Member</h2>
+        <p className="text-xl mb-8 text-center max-w-2xl">Join Project Graveyard today and connect with passionate creators to bring abandoned ideas back to life.</p>
+        <button className="bg-emerald-400 text-white px-4 py-2 rounded text-base font-semibold hover:bg-emerald-500 transition-colors" onClick={() => window.location.href = '/signup'}>Join Now</button>
+      </div>
     </div>
   );
 }
