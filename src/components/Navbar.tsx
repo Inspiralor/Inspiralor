@@ -102,7 +102,7 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
       <div className="flex items-center gap-4">
         {user ? (
           <>
-            <Link href={profileLink} className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors">Profile</Link>
+            <Link href={profileLink} className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-600 hover:from-sky-500 hover:to-indigo-700">Profile</Link>
             <button
               onClick={handleSignOut}
               className="bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-colors"
@@ -113,7 +113,7 @@ export default function Navbar({ isTransparent = false, hideGetStarted = false }
         ) : !hideGetStarted && (
           <button
             onClick={() => router.push('/login')}
-            className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors"
+            className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600"
           >
             Get Started
           </button>

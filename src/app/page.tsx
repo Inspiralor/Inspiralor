@@ -99,7 +99,7 @@ export default function Home() {
           {!user && (
             <form className="flex gap-2 w-full max-w-md" onSubmit={handleSignup}>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Enter your email" className="rounded px-4 py-2 flex-1 text-white placeholder-white bg-black/40 border border-white" />
-              <button type="submit" className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-emerald-500 hover:to-purple-600 transition-colors">Sign up</button>
+              <button type="submit" className="bg-emerald-400 hover:bg-emerald-500 transition-colors text-white px-4 py-1 rounded text-sm font-semibold shadow-md">Sign up</button>
             </form>
           )}
         </div>
