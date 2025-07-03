@@ -11,28 +11,26 @@ import { FaLinkedin, FaXTwitter, FaFacebook } from 'react-icons/fa6';
 import type { User } from "@supabase/supabase-js";
 
 function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
-  // Find the first image file (jpg, jpeg, png, gif, webp, svg)
   const imageFile = project.files?.find((f: any) => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.6, type: "spring" }}
-      className="rounded-xl bg-card/80 shadow-glass p-0 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md cursor-pointer overflow-hidden"
+      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-2 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md cursor-pointer"
       onClick={() => window.location.href = `/projects/${project.id}`}
     >
       {imageFile && (
         <img
           src={imageFile.url}
           alt={project.title}
-          className="w-full h-48 object-cover"
+          className="w-full h-48 object-cover rounded-t-xl mb-2"
         />
       )}
-      <div className="p-4">
-        <div className="text-xl font-bold text-primary hover:underline mb-2">
-          {project.title}
-        </div>
+      <div className="text-xl font-bold text-primary hover:underline mb-1">
+        {project.title}
       </div>
+      <div className="text-sm text-emerald-400 mb-2">{project.category}</div>
     </motion.div>
   );
 }
@@ -153,7 +151,7 @@ export default function Home() {
       <div className="w-full bg-black py-20 text-white">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-4xl font-extrabold mb-6">Latest New Projects</h2>
-          <p className="text-lg mb-10 max-w-2xl">Explore the six newest arrivals in Project Graveyard,unfinished visions, bold experiments, and forgotten ideas waiting to be rediscovered. Dive into a collection where creativity lives on, even if the projects didn’t.</p>
+          <p className="text-lg mb-10 max-w-2xl">Explore the six newest arrivals in Project Graveyard,unfinished visions, bold experiments, and forgotten ideas waiting to be rediscovered. Dive into a collection where creativity lives on, even if the projects didn't.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {latestProjects.map((project, i) => (
               <ProjectCard key={project.id} project={project} delay={i * 0.1} />

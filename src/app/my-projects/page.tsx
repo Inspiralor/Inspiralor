@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
@@ -153,7 +152,7 @@ function ProjectCard({
             {project.description}
           </div>
           <div className="flex gap-2 flex-wrap text-xs mb-2">
-            {project.tags?.map((tag: string) => (
+            {project.tags?.slice(0, 4).map((tag: string) => (
               <span key={tag} className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200">
                 #{tag}
               </span>
@@ -236,10 +235,9 @@ export default function MyProjectsPage() {
 
   return (
     <>
-      <Navbar />
-      <main className="min-h-screen bg-white pb-20">
+      <main className="min-h-screen bg-white pb-20 pt-24">
         <section className="max-w-5xl mx-auto py-12 px-4">
-          <h1 className="text-3xl font-bold mb-6 text-primary font-display">
+          <h1 className="text-3xl font-bold mb-6 text-black font-display">
             My Projects
           </h1>
           {loading ? (

@@ -31,6 +31,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Navbar />
         {children}
         <footer className="w-full bg-black py-10 text-white">
           <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">

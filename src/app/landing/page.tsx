@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { SparklesIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import { useInView } from 'react-intersection-observer';
 import { FaLinkedin, FaXTwitter, FaFacebook, FaHeart, FaRegHeart } from 'react-icons/fa6';
 import { useRouter } from "next/navigation";
@@ -164,7 +163,6 @@ export default function Landing() {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
-      <Navbar hideGetStarted={true} />
       {/* Section 1: Welcome & Search */}
       <section className="flex flex-col items-center justify-center h-[60vh]">
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-center">
