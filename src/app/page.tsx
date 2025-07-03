@@ -208,12 +208,12 @@ export default function Home() {
               <div className="uppercase text-sm font-bold mb-2">Our Team</div>
               <h2 className="text-4xl font-extrabold mb-2">Meet Innovators</h2>
               <p className="text-lg mb-8">Dedicated to connecting creators with unfinished ideas, fostering collaboration and innovation.</p>
-              <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer" className="border border-emerald-400 text-emerald-400 px-3 py-2 rounded inline-block">Visit my GitHub</a>
+              <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer" className="border border-emerald-400 text-emerald-400 px-3 py-2 rounded inline-block">Learn More</a>
             </div>
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col items-center">
                 <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer">
-                  <img src="https://avatars.githubusercontent.com/u/10270220?v=4" alt="Hok Wai Chan" width={250} height={250} className="rounded mb-4 object-cover" />
+                  <img src="/images/Me/me.jpeg" alt="Hok Wai Chan" width={250} height={250} className="rounded mb-4 object-cover" />
                 </a>
                 <h4 className="text-xl font-bold mb-1">Hok Wai Chan</h4>
                 <div className="text-base font-semibold mb-1">Software Developer</div>

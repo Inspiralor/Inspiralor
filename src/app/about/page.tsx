@@ -27,7 +27,7 @@ export default function AboutPage() {
           <div className="flex-1 flex flex-col gap-8">
             <div className="flex items-center gap-4">
               <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer">
-                <img src="https://avatars.githubusercontent.com/u/10270220?v=4" alt="Hok Wai Chan" className="w-20 h-20 rounded-full object-cover border-2 border-emerald-400" />
+                <img src="/images/Me/me.jpeg" alt="Hok Wai Chan" className="w-20 h-20 rounded-full object-cover border-2 border-emerald-400" />
               </a>
               <div>
                 <h4 className="font-bold text-lg text-black">Hok Wai Chan</h4>
