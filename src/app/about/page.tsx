@@ -28,14 +28,15 @@ export default function AboutPage() {
           </div>
           <div className="flex-1 flex flex-col gap-8">
             <div className="flex items-center gap-4">
-              <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Hok Wai Chan" className="w-20 h-20 rounded-full object-cover border-2 border-emerald-400" />
+              <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer">
+                <img src="https://avatars.githubusercontent.com/u/10270220?v=4" alt="Hok Wai Chan" className="w-20 h-20 rounded-full object-cover border-2 border-emerald-400" />
+              </a>
               <div>
                 <h4 className="font-bold text-lg text-black">Hok Wai Chan</h4>
                 <div className="text-sm text-gray-500 mb-1">Founder & CEO</div>
                 <div className="text-sm text-gray-700">Visionary leader with a passion for connecting creators and revitalizing abandoned projects.</div>
                 <div className="flex gap-2 mt-1">
-                  <span className="text-gray-400"><i className="fab fa-twitter"></i></span>
-                  <span className="text-gray-400"><i className="fab fa-linkedin"></i></span>
+                  <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer" className="text-gray-400"><i className="fab fa-github"></i></a>
                 </div>
               </div>
             </div>

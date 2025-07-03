@@ -11,29 +11,28 @@ import { FaLinkedin, FaXTwitter, FaFacebook } from 'react-icons/fa6';
 import type { User } from "@supabase/supabase-js";
 
 function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
+  // Find the first image file (jpg, jpeg, png, gif, webp, svg)
+  const imageFile = project.files?.find((f: any) => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.6, type: "spring" }}
-      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-2 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
+      className="rounded-xl bg-card/80 shadow-glass p-0 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md cursor-pointer overflow-hidden"
+      onClick={() => window.location.href = `/projects/${project.id}`}
     >
-      <Link
-        href={`/projects/${project.id}`}
-        className="text-xl font-bold text-primary hover:underline"
-      >
-        {project.title}
-      </Link>
-      <div className="text-sm text-muted">{project.category}</div>
-      <div className="text-gray-200 line-clamp-2">{project.description}</div>
-      <div className="flex gap-2 flex-wrap text-xs mt-2">
-        {project.tags?.map((tag: string) => (
-          <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
-            #{tag}
-          </span>
-        ))}
+      {imageFile && (
+        <img
+          src={imageFile.url}
+          alt={project.title}
+          className="w-full h-48 object-cover"
+        />
+      )}
+      <div className="p-4">
+        <div className="text-xl font-bold text-primary hover:underline mb-2">
+          {project.title}
+        </div>
       </div>
-      <div className="text-xs text-muted mt-1">Status: {project.status}</div>
     </motion.div>
   );
 }
@@ -46,6 +45,7 @@ export default function Home() {
   const section1Ref = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
   const { ref: inViewRef, inView: section1InView } = useInView({ threshold: 0.5 });
+  const [latestProjects, setLatestProjects] = useState<any[]>([]);
 
   useEffect(() => {
     // Get current user
@@ -76,6 +76,18 @@ export default function Home() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const fetchLatestProjects = async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      setLatestProjects(data || []);
+    };
+    fetchLatestProjects();
   }, []);
 
   const handleSignup = (e: React.FormEvent) => {
@@ -137,13 +149,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Section 3: Featured Projects (black bg, white text) */}
+      {/* Section 3: Latest New Projects (black bg, white text) */}
       <div className="w-full bg-black py-20 text-white">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-extrabold mb-6">Featured Projects</h2>
-          <p className="text-lg mb-10 max-w-2xl">Explore a curated selection of our most impactful projects that demonstrate the power of community collaboration and idea revival.</p>
-          <div className="w-full rounded-xl overflow-hidden mb-8">
-            <Image src="/images/HomePage/Section3/FeaturedProject.png" alt="Section 3" width={1200} height={600} className="w-full object-cover" />
+          <h2 className="text-4xl font-extrabold mb-6">Latest New Projects</h2>
+          <p className="text-lg mb-10 max-w-2xl">Explore the six newest arrivals in Project Graveyard,unfinished visions, bold experiments, and forgotten ideas waiting to be rediscovered. Dive into a collection where creativity lives on, even if the projects didn’t.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {latestProjects.map((project, i) => (
+              <ProjectCard key={project.id} project={project} delay={i * 0.1} />
+            ))}
           </div>
         </div>
       </div>
@@ -196,17 +210,19 @@ export default function Home() {
               <div className="uppercase text-sm font-bold mb-2">Our Team</div>
               <h2 className="text-4xl font-extrabold mb-2">Meet Innovators</h2>
               <p className="text-lg mb-8">Dedicated to connecting creators with unfinished ideas, fostering collaboration and innovation.</p>
-              <button className="border border-emerald-400 text-emerald-400 px-3 py-2 rounded">Learn More</button>
+              <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer" className="border border-emerald-400 text-emerald-400 px-3 py-2 rounded inline-block">Visit my GitHub</a>
             </div>
             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="flex flex-col items-center">
-                <Image src="/images/HomePage/Section5/DavidLee.png" alt="Hok Wai Chan" width={250} height={250} className="rounded mb-4 object-cover" />
+                <a href="https://github.com/hokwaichan" target="_blank" rel="noopener noreferrer">
+                  <img src="https://avatars.githubusercontent.com/u/10270220?v=4" alt="Hok Wai Chan" width={250} height={250} className="rounded mb-4 object-cover" />
+                </a>
                 <h4 className="text-xl font-bold mb-1">Hok Wai Chan</h4>
                 <div className="text-base font-semibold mb-1">Software Developer</div>
                 <p className="text-base text-center mb-2">Hok Wai is the developer and co-founder of Project Graveyard, bringing the technical vision to life through robust engineering and system design.</p>
                 <div className="flex gap-2 mt-2">
-                  <a href="#" className="text-black"><FaLinkedin size={20} /></a>
-                  <a href="#" className="text-black"><FaXTwitter size={20} /></a>
+                  <a href="https://github.com/hokwaichan" className="text-black" target="_blank" rel="noopener noreferrer"><FaLinkedin size={20} /></a>
+                  <a href="https://github.com/hokwaichan" className="text-black" target="_blank" rel="noopener noreferrer"><FaXTwitter size={20} /></a>
                 </div>
               </div>
             </div>
