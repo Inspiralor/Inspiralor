@@ -4,7 +4,7 @@ import "./globals.css";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";
-import { FaLinkedin, FaXTwitter, FaFacebook } from 'react-icons/fa6';
+import { FaLinkedin, FaXTwitter, FaFacebook } from "react-icons/fa6";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,14 +42,20 @@ export default function RootLayout({
                 <Link href="/contact">Contact</Link>
               </div>
               <div className="absolute right-0 top-1/2 -translate-y-1/2 flex gap-3">
-                <a href="#" aria-label="Facebook"><FaFacebook size={16} /></a>
-                <a href="#" aria-label="LinkedIn"><FaLinkedin size={16} /></a>
-                <a href="#" aria-label="X"><FaXTwitter size={16} /></a>
+                <a href="#" aria-label="Facebook">
+                  <FaFacebook size={16} />
+                </a>
+                <a href="#" aria-label="LinkedIn">
+                  <FaLinkedin size={16} />
+                </a>
+                <a href="#" aria-label="X">
+                  <FaXTwitter size={16} />
+                </a>
               </div>
             </div>
             <hr className="border-white/40 mb-4 w-full" />
             <div className="flex flex-col md:flex-row items-center justify-center text-sm gap-8">
-              <div>Copyright © 2025 Project Graveyard. All rights reserved.</div>
+              <div>Copyright © 2025 Inspiralor. All rights reserved.</div>
               <Link href="/terms">Terms and Conditions</Link>
               <Link href="/privacy">Privacy Policy</Link>
             </div>
