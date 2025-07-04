@@ -2,19 +2,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter, usePathname } from "next/navigation";
-import type {
-  AuthChangeEvent,
-  Session,
-  UserResponse,
-  User,
-} from "@supabase/supabase-js";
-import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
 
 export default function Navbar() {
   const router = useRouter();
-  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
@@ -56,9 +49,11 @@ export default function Navbar() {
   const profileLink = user ? `/profile/${user.id}` : "/profile";
 
   const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (user) {
-      e.preventDefault();
       router.push("/landing");
+    } else {
+      router.push("/");
     }
   };
 
@@ -85,12 +80,20 @@ export default function Navbar() {
           Submit
         </Link>
         {user && (
-          <Link
-            href="/my-projects"
-            className="text-white font-medium text-base hover:underline"
-          >
-            My Projects
-          </Link>
+          <>
+            <Link
+              href="/my-projects"
+              className="text-white font-medium text-base hover:underline"
+            >
+              My Projects
+            </Link>
+            <Link
+              href="/adopted-projects"
+              className="text-white font-medium text-base hover:underline"
+            >
+              Adopted Projects
+            </Link>
+          </>
         )}
       </div>
       {/* Center: Title */}

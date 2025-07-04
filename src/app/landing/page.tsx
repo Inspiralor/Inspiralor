@@ -1,12 +1,10 @@
 "use client";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { SparklesIcon } from "@heroicons/react/24/solid";
+import { FaHeart, FaRegHeart } from "react-icons/fa6";
+import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
-import { useInView } from 'react-intersection-observer';
-import { FaLinkedin, FaXTwitter, FaFacebook, FaHeart, FaRegHeart } from 'react-icons/fa6';
 import { useRouter } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
@@ -34,37 +32,9 @@ interface Profile {
   profile_image: string | null;
 }
 
-function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.6, type: "spring" }}
-      className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-2 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md"
-    >
-      <Link
-        href={`/projects/${project.id}`}
-        className="text-xl font-bold text-primary hover:underline"
-      >
-        {project.title}
-      </Link>
-      <div className="text-sm text-muted">{project.category}</div>
-      <div className="text-gray-200 line-clamp-2">{project.description}</div>
-      <div className="flex gap-2 flex-wrap text-xs mt-2">
-        {project.tags?.map((tag: string) => (
-          <span key={tag} className="bg-glass text-primary rounded px-2 py-0.5">
-            #{tag}
-          </span>
-        ))}
-      </div>
-      <div className="text-xs text-muted mt-1">Status: {project.status}</div>
-    </motion.div>
-  );
-}
-
 export default function Landing() {
   // User state
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   // Projects state
   const [projects, setProjects] = useState<Project[]>([]);
@@ -75,11 +45,79 @@ export default function Landing() {
   // Search state
   const [search, setSearch] = useState("");
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  // Add at the top of the Landing component, after useState declarations:
+  const row1Ref = useRef<HTMLDivElement>(null);
+  const row2Ref = useRef<HTMLDivElement>(null);
+  const row3Ref = useRef<HTMLDivElement>(null);
+  const [x1, setX1] = useState(0);
+  const [x2, setX2] = useState(0);
+  const [x3, setX3] = useState(0);
+  // Row 1 animation (left)
+  useEffect(() => {
+    let frame: any;
+    const speed = 0.2;
+    const direction = -1;
+    const animate = () => {
+      if (row1Ref.current) {
+        setX1((prev) => {
+          const width = row1Ref.current ? row1Ref.current.scrollWidth / 2 : 0;
+          let next = prev + speed * direction;
+          if (Math.abs(next) > width) next = 0;
+          return next;
+        });
+      }
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  // Row 2 animation (right)
+  useEffect(() => {
+    let frame: any;
+    const speed = 0.2;
+    const direction = 1;
+    const animate = () => {
+      if (row2Ref.current) {
+        setX2((prev) => {
+          const width = row2Ref.current ? row2Ref.current.scrollWidth / 2 : 0;
+          let next = prev + speed * direction;
+          if (next > 0) next = -width;
+          return next;
+        });
+      }
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  // Row 3 animation (left)
+  useEffect(() => {
+    let frame: any;
+    const speed = 0.2;
+    const direction = -1;
+    const animate = () => {
+      if (row3Ref.current) {
+        setX3((prev) => {
+          const width = row3Ref.current ? row3Ref.current.scrollWidth / 2 : 0;
+          let next = prev + speed * direction;
+          if (Math.abs(next) > width) next = 0;
+          return next;
+        });
+      }
+      frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // Fetch user and profile
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       setUser(user);
       if (user) {
         const { data: profile } = await supabase
@@ -93,8 +131,13 @@ export default function Landing() {
           .from("favourites")
           .select("project_id")
           .eq("user_id", user.id);
-        setFavourites((favs || []).map((f: { project_id: string }) => f.project_id));
+        setFavourites(
+          (favs || []).map((f: { project_id: string }) => f.project_id)
+        );
+      } else {
+        router.replace("/login");
       }
+      setLoading(false);
     };
     fetchUser();
   }, []);
@@ -126,9 +169,10 @@ export default function Landing() {
       // Count projects per creator
       const counts: Record<string, number> = {};
       (projects || []).forEach((p: { creator_id: string }) => {
-        if (p.creator_id) counts[p.creator_id] = (counts[p.creator_id] || 0) + 1;
+        if (p.creator_id)
+          counts[p.creator_id] = (counts[p.creator_id] || 0) + 1;
       });
-      const creators = (profiles || []).map((p: any) => ({
+      const creators = (profiles || []).map((p: Profile) => ({
         ...p,
         count: counts[p.id] || 0,
       }));
@@ -152,7 +196,7 @@ export default function Landing() {
         .delete()
         .eq("user_id", user.id)
         .eq("project_id", projectId);
-      setFavourites(favourites.filter(id => id !== projectId));
+      setFavourites(favourites.filter((id) => id !== projectId));
     } else {
       await supabase
         .from("favourites")
@@ -160,6 +204,15 @@ export default function Landing() {
       setFavourites([...favourites, projectId]);
     }
   };
+
+  // Now do the early return
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-b from-black to-gray-900 text-white">
@@ -174,12 +227,18 @@ export default function Landing() {
             className="w-full pl-4 pr-12 py-2 rounded-lg bg-gray-800 text-base text-white placeholder-gray-400 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-lg"
             placeholder="Search for projects, creators, type..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { router.push(`/projects?search=${encodeURIComponent(search)}`); } }}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                router.push(`/projects?search=${encodeURIComponent(search)}`);
+              }
+            }}
           />
           <button
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors"
-            onClick={() => router.push(`/projects?search=${encodeURIComponent(search)}`)}
+            onClick={() =>
+              router.push(`/projects?search=${encodeURIComponent(search)}`)
+            }
             aria-label="Search"
           >
             <MagnifyingGlassIcon className="w-5 h-5 text-white" />
@@ -189,21 +248,35 @@ export default function Landing() {
 
       {/* Section 2: Latest New Projects */}
       <section className="max-w-6xl mx-auto py-12">
-        <h2 className="text-3xl font-bold mb-8 text-center">Latest New Projects</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">
+          Latest New Projects
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {projects.map((project, i) => {
-            const imageFile = project.files?.find(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
+          {projects.map((project) => {
+            const imageFile = project.files?.find((f) =>
+              /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
+            );
             const isFavourited = favourites.includes(project.id);
             const isOwnProject = user && user.id === project.creator_id;
             return (
-              <div key={project.id} className="relative bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col">
+              <div
+                key={project.id}
+                className="relative bg-gray-800 rounded-xl shadow-lg overflow-hidden flex flex-col"
+              >
                 <div className="relative w-full h-48 bg-gray-900">
                   {imageFile ? (
                     <Link href={`/projects/${project.id}`}>
-                      <Image src={imageFile.url} alt={imageFile.name} fill className="object-cover cursor-pointer hover:opacity-80 transition-opacity" />
+                      <Image
+                        src={imageFile.url}
+                        alt={imageFile.name}
+                        fill
+                        className="object-cover cursor-pointer hover:opacity-80 transition-opacity"
+                      />
                     </Link>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">No Image</div>
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">
+                      No Image
+                    </div>
                   )}
                   {/* Favourite Button (hide for own projects) */}
                   {!isOwnProject && (
@@ -211,15 +284,24 @@ export default function Landing() {
                       className="absolute bottom-3 right-3 bg-black/70 rounded-full p-2"
                       onClick={() => toggleFavourite(project.id)}
                     >
-                      {isFavourited ? <FaHeart className="text-emerald-400 w-6 h-6" /> : <FaRegHeart className="text-white w-6 h-6" />}
+                      {isFavourited ? (
+                        <FaHeart className="text-emerald-400 w-6 h-6" />
+                      ) : (
+                        <FaRegHeart className="text-white w-6 h-6" />
+                      )}
                     </button>
                   )}
                 </div>
                 <div className="p-4 flex-1 flex flex-col">
-                  <Link href={`/projects/${project.id}`} className="text-lg font-bold mb-1 line-clamp-1 hover:text-emerald-400 transition-colors cursor-pointer">
+                  <Link
+                    href={`/projects/${project.id}`}
+                    className="text-lg font-bold mb-1 line-clamp-1 hover:text-emerald-400 transition-colors cursor-pointer"
+                  >
                     {project.title}
                   </Link>
-                  <div className="text-sm text-emerald-400 mb-2">{project.category}</div>
+                  <div className="text-sm text-emerald-400 mb-2">
+                    {project.category}
+                  </div>
                 </div>
               </div>
             );
@@ -227,75 +309,163 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Section 3: Top Creators */}
+      {/* Section 3: Top Creators (animated rows) */}
       <section className="max-w-6xl mx-auto py-12">
         <h2 className="text-3xl font-bold mb-8 text-center">Top Creators</h2>
         <div className="flex flex-col gap-8">
-          {[0, 1, 2].map(row => {
-            // Infinite loop animation for creators row
-            const [x, setX] = useState(0);
-            const speed = 0.2; // px per frame (slower)
-            const direction = row % 2 === 0 ? -1 : 1;
-            const rowRef = useRef<HTMLDivElement>(null);
-            useEffect(() => {
-              let frame: any;
-              const animate = () => {
-                if (rowRef.current) {
-                  setX(prev => {
-                    const width = rowRef.current ? rowRef.current.scrollWidth / 2 : 0;
-                    let next = prev + direction * speed;
-                    if (direction === -1 && Math.abs(next) >= width) next = 0;
-                    if (direction === 1 && next >= 0) next = -width;
-                    return next;
-                  });
-                }
-                frame = requestAnimationFrame(animate);
-              };
-              frame = requestAnimationFrame(animate);
-              return () => cancelAnimationFrame(frame);
-            }, [direction]);
-            // Duplicate creators for seamless loop
-            const rowCreators = creators.slice(row * 6, row * 6 + 6);
-            return (
-              <div
-                key={row}
-                className="relative overflow-hidden"
-                style={{ width: '100%' }}
-              >
-                {/* Fade overlays */}
-                <div className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10" style={{background: 'linear-gradient(to right, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)'}} />
-                <div className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10" style={{background: 'linear-gradient(to left, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)'}} />
-                <div
-                  ref={rowRef}
-                  className="flex gap-6"
-                  style={{
-                    transform: `translateX(${x}px)`,
-                    width: `${rowCreators.length * 2 * 220}px`,
-                  }}
-                >
-                  {[...rowCreators, ...rowCreators].map((creator, i) => (
-                    <Link
-                      key={creator.id + i}
-                      href={`/profile/${creator.id}`}
-                      className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px] cursor-pointer hover:bg-emerald-900 transition-colors"
-                    >
-                      <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
-                        <Image
-                          src={creator.profile_image || "/images/Icon.jpeg"}
-                          alt={creator.name || "User"}
-                          width={64}
-                          height={64}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                      <div className="font-bold text-lg mb-1 text-center">{creator.name || "Unnamed"}</div>
-                      <div className="text-sm text-gray-400 mb-1">{creator.count} posts</div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {/* Row 1 */}
+          <div className="relative overflow-hidden" style={{ width: "100%" }}>
+            <div
+              className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10"
+              style={{
+                background:
+                  "linear-gradient(to left, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              ref={row1Ref}
+              className="flex gap-6"
+              style={{
+                transform: `translateX(${x1}px)`,
+                width: `${Math.min(creators.length, 6) * 2 * 220}px`,
+              }}
+            >
+              {[...creators.slice(0, 6), ...creators.slice(0, 6)].map(
+                (creator, i) => (
+                  <Link
+                    key={creator.id + i}
+                    href={`/profile/${creator.id}`}
+                    className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px] cursor-pointer hover:bg-emerald-900 transition-colors"
+                  >
+                    <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
+                      <Image
+                        src={creator.profile_image || "/images/Me/me.jpeg"}
+                        alt={creator.name || "User"}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div className="font-bold text-lg mb-1 text-center">
+                      {creator.name || "Unnamed"}
+                    </div>
+                    <div className="text-sm text-gray-400 mb-1">
+                      {creator.count} posts
+                    </div>
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
+          {/* Row 2 */}
+          <div className="relative overflow-hidden" style={{ width: "100%" }}>
+            <div
+              className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10"
+              style={{
+                background:
+                  "linear-gradient(to left, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              ref={row2Ref}
+              className="flex gap-6"
+              style={{
+                transform: `translateX(${x2}px)`,
+                width: `${Math.min(creators.length, 6) * 2 * 220}px`,
+              }}
+            >
+              {[...creators.slice(6, 12), ...creators.slice(6, 12)].map(
+                (creator, i) => (
+                  <Link
+                    key={creator.id + i}
+                    href={`/profile/${creator.id}`}
+                    className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px] cursor-pointer hover:bg-emerald-900 transition-colors"
+                  >
+                    <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
+                      <Image
+                        src={creator.profile_image || "/images/Me/me.jpeg"}
+                        alt={creator.name || "User"}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div className="font-bold text-lg mb-1 text-center">
+                      {creator.name || "Unnamed"}
+                    </div>
+                    <div className="text-sm text-gray-400 mb-1">
+                      {creator.count} posts
+                    </div>
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
+          {/* Row 3 */}
+          <div className="relative overflow-hidden" style={{ width: "100%" }}>
+            <div
+              className="pointer-events-none absolute left-0 top-0 h-full w-24 z-10"
+              style={{
+                background:
+                  "linear-gradient(to right, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute right-0 top-0 h-full w-24 z-10"
+              style={{
+                background:
+                  "linear-gradient(to left, rgba(17,17,17,0.7) 60%, rgba(17,17,17,0.1) 90%, transparent 100%)",
+              }}
+            />
+            <div
+              ref={row3Ref}
+              className="flex gap-6"
+              style={{
+                transform: `translateX(${x3}px)`,
+                width: `${Math.min(creators.length, 6) * 2 * 220}px`,
+              }}
+            >
+              {[...creators.slice(12, 18), ...creators.slice(12, 18)].map(
+                (creator, i) => (
+                  <Link
+                    key={creator.id + i}
+                    href={`/profile/${creator.id}`}
+                    className="bg-gray-800 rounded-xl shadow-lg flex flex-col items-center p-6 min-w-[200px] cursor-pointer hover:bg-emerald-900 transition-colors"
+                  >
+                    <div className="w-16 h-16 rounded-full overflow-hidden mb-3 bg-gray-700">
+                      <Image
+                        src={creator.profile_image || "/images/Me/me.jpeg"}
+                        alt={creator.name || "User"}
+                        width={64}
+                        height={64}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                    <div className="font-bold text-lg mb-1 text-center">
+                      {creator.name || "Unnamed"}
+                    </div>
+                    <div className="text-sm text-gray-400 mb-1">
+                      {creator.count} posts
+                    </div>
+                  </Link>
+                )
+              )}
+            </div>
+          </div>
         </div>
       </section>
     </div>

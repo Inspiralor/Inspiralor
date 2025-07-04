@@ -159,8 +159,12 @@ export default function ProfilePage() {
       } else {
         setFavourited([]);
       }
-      // Fetch adopted projects (placeholder: none yet)
-      setAdopted([]);
+      // Fetch adopted projects
+      const { data: adoptedProjects } = await supabase
+        .from("projects")
+        .select("id, title, category, status")
+        .eq("adopter_id", user.id);
+      setAdopted(adoptedProjects || []);
       setLoading(false);
     };
     fetchProfile();
@@ -261,7 +265,11 @@ export default function ProfilePage() {
           <div className="flex flex-col md:flex-row gap-12 items-center w-full">
             <div className="relative w-40 h-40">
               <Image
-                src={typeof profileImage === 'string' ? profileImage : '/images/Icon.jpeg'}
+                src={
+                  typeof profileImage === "string"
+                    ? profileImage
+                    : "/images/Icon.jpeg"
+                }
                 alt="Profile"
                 fill
                 className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
@@ -290,15 +298,32 @@ export default function ProfilePage() {
                 Email: <span className="font-mono">{user?.email}</span>
               </div>
               <div className="mb-2">
-                <strong>Bio:</strong> {profile?.bio || <span className="text-muted">No bio</span>}
+                <strong>Bio:</strong>{" "}
+                {profile?.bio || <span className="text-muted">No bio</span>}
               </div>
               <div className="mb-2">
-                <strong>Interests:</strong> {profile?.interests || <span className="text-muted">No interests</span>}
+                <strong>Interests:</strong>{" "}
+                {profile?.interests || (
+                  <span className="text-muted">No interests</span>
+                )}
               </div>
               <div className="mb-2">
-                <strong>Portfolio:</strong> {profile?.portfolio_links?.length ? profile.portfolio_links.map((l, i) => (
-                  <a key={i} href={l} className="text-accent underline mr-2" target="_blank" rel="noopener noreferrer">{l}</a>
-                )) : <span className="text-muted">No links</span>}
+                <strong>Portfolio:</strong>{" "}
+                {profile?.portfolio_links?.length ? (
+                  profile.portfolio_links.map((l, i) => (
+                    <a
+                      key={i}
+                      href={l}
+                      className="text-accent underline mr-2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {l}
+                    </a>
+                  ))
+                ) : (
+                  <span className="text-muted">No links</span>
+                )}
               </div>
               <div className="flex flex-wrap gap-4 mt-2">
                 {SOCIALS.map(({ key, label, icon: Icon }) =>
@@ -311,7 +336,9 @@ export default function ProfilePage() {
                       className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-white text-white hover:bg-white hover:text-primary transition-colors shadow"
                     >
                       <Icon className="w-5 h-5" />
-                      <span className="hidden md:inline font-semibold text-sm">{label}</span>
+                      <span className="hidden md:inline font-semibold text-sm">
+                        {label}
+                      </span>
                     </a>
                   ) : null
                 )}
@@ -323,7 +350,11 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center mb-4 gap-4">
                 <div className="relative w-32 h-32">
                   <Image
-                    src={typeof profileImage === 'string' ? profileImage : '/images/Icon.jpeg'}
+                    src={
+                      typeof profileImage === "string"
+                        ? profileImage
+                        : "/images/Icon.jpeg"
+                    }
                     alt="Profile"
                     fill
                     className="rounded-full object-cover border-4 border-white shadow-lg bg-white"
@@ -468,30 +499,38 @@ export default function ProfilePage() {
                 ))}
               </ul>
             )}
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold mb-2 text-primary">
-              Adopted Projects
-            </h2>
-            {adopted.length === 0 ? (
-              <div className="text-muted">No adopted projects yet.</div>
-            ) : (
-              <ul className="list-disc ml-6">
-                {adopted.map((p) => (
-                  <li key={p.id}>
-                    <Link
-                      href={`/projects/${p.id}`}
-                      className="text-accent underline"
-                    >
-                      {p.title}
-                    </Link>{" "}
-                    <span className="text-xs text-muted">
-                      ({p.category}, {p.status})
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <div className="mt-4">
+              <h2 className="text-xl font-semibold mb-2 text-primary">
+                Adopted Projects
+              </h2>
+              {adopted.length === 0 ? (
+                <div className="text-muted">No adopted projects yet.</div>
+              ) : (
+                <ul className="list-disc ml-6">
+                  {adopted.map((p) => (
+                    <li key={p.id}>
+                      <Link
+                        href={`/projects/${p.id}`}
+                        className="text-accent underline"
+                      >
+                        {p.title}
+                      </Link>{" "}
+                      <span className="text-xs text-muted">
+                        ({p.category}, {p.status})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="mt-2">
+                <Link
+                  href="/adopted-projects"
+                  className="text-blue-500 underline text-sm"
+                >
+                  View All Adopted Projects
+                </Link>
+              </div>
+            </div>
           </div>
         </motion.div>
       </main>

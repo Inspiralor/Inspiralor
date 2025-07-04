@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -20,17 +21,20 @@ type Project = {
   files: { name: string; url: string }[];
   creator_id: string;
   created_at: string;
+  adopter_id: string | null;
+  adopted_by: string[];
 };
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [author, setAuthor] = useState<{
     name: string;
     unique_id: string;
   } | null>(null);
+  const [adopters, setAdopters] = useState<{ id: string; name: string }[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -64,6 +68,23 @@ export default function ProjectDetailPage() {
     if (project) fetchAuthor();
   }, [project]);
 
+  // Fetch all adopters for this project
+  useEffect(() => {
+    const fetchAdopters = async () => {
+      if (!project?.id) return;
+      if (project.adopted_by && project.adopted_by.length > 0) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", project.adopted_by);
+        setAdopters(data || []);
+      } else {
+        setAdopters([]);
+      }
+    };
+    fetchAdopters();
+  }, [project]);
+
   if (loading)
     return <main className="max-w-2xl mx-auto py-10 px-4">Loading...</main>;
   if (!project)
@@ -78,6 +99,48 @@ export default function ProjectDetailPage() {
     router.push("/projects");
   };
 
+  // In handleAdopt, update the adopted_by array in the database
+  const handleAdopt = async () => {
+    if (!user || !project) return;
+    // 1. Add user.id to adopted_by array (if not already present)
+    // If user.id is already in adopted_by, do nothing
+    if ((project.adopted_by || []).includes(user.id)) return;
+    const newAdoptedBy = [...(project.adopted_by || []), user.id];
+    const { error: updateError } = await supabase
+      .from("projects")
+      .update({
+        adopted_by: newAdoptedBy,
+        status: "restarted",
+      })
+      .eq("id", project.id);
+    if (updateError) {
+      alert("Failed to update project status: " + updateError.message);
+      return;
+    }
+    // 2. Send email to creator (placeholder for API call)
+    try {
+      const res = await fetch("/api/adopt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: project.id,
+          creatorId: project.creator_id,
+          adopterId: user.id,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to send email");
+      alert("Project adopted! The creator has been notified.");
+      // Optionally, refresh project data
+      setProject({
+        ...project,
+        status: "restarted",
+        adopted_by: [...(project.adopted_by || []), user.id],
+      });
+    } catch {
+      alert("Project status updated, but failed to send email notification.");
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -90,6 +153,11 @@ export default function ProjectDetailPage() {
         >
           <h1 className="text-4xl font-bold mb-2 text-primary font-display">
             {project.title}
+            {project.adopter_id && (
+              <span className="ml-4 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-semibold align-middle">
+                Adopted
+              </span>
+            )}
           </h1>
           <div className="mb-2 text-muted">Category: {project.category}</div>
           <div className="mb-2 text-muted">Status: {project.status}</div>
@@ -183,20 +251,36 @@ export default function ProjectDetailPage() {
             </div>
           )}
           <div className="flex gap-4 mt-6">
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ scale: 1.03 }}
-              className="bg-green-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-accent transition-colors"
-            >
-              Adopt Project
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ scale: 1.03 }}
-              className="bg-blue-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-accent transition-colors"
-            >
-              Remix / Continue
-            </motion.button>
+            {user && (
+              <>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.03 }}
+                  className={`bg-green-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition-colors ${
+                    (project.adopted_by || []).includes(user.id)
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-accent"
+                  }`}
+                  onClick={
+                    (project.adopted_by || []).includes(user.id)
+                      ? undefined
+                      : handleAdopt
+                  }
+                  disabled={(project.adopted_by || []).includes(user.id)}
+                >
+                  {(project.adopted_by || []).includes(user.id)
+                    ? "You Adopted This Project"
+                    : "Adopt Project"}
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.03 }}
+                  className="bg-blue-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-accent transition-colors"
+                >
+                  Remix / Continue
+                </motion.button>
+              </>
+            )}
             {user && project && user.id === project.creator_id && (
               <>
                 <motion.button
@@ -218,6 +302,21 @@ export default function ProjectDetailPage() {
               </>
             )}
           </div>
+          {/* List of adopters inside the project card */}
+          {adopters.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-green-700 mb-2">
+                Adopted by:
+              </h3>
+              <ul className="list-disc ml-6">
+                {adopters.map((a) => (
+                  <li key={a.id} className="text-green-800 font-semibold">
+                    {a.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div className="mt-10">
             <h2 className="text-xl font-semibold mb-2 text-primary">
               Remix Tree

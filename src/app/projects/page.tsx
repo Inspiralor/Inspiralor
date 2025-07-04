@@ -38,6 +38,8 @@ type Project = {
   status: string;
   files?: { name: string; url: string }[];
   creator_id?: string;
+  adopter_id?: string;
+  adopter_name?: string;
 };
 
 function ProjectCard({
@@ -121,11 +123,11 @@ function ProjectCard({
       className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
       {/* Favourite Button */}
-      {!isOwnProject && (
+      {!isOwnProject && user && (
         <button
           className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
           onClick={() => toggleFavourite(project.id)}
-          aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
+          aria-label={isFavourited ? "Unfavourite" : "Favourite"}
         >
           {isFavourited ? (
             <FaHeart className="text-emerald-500 w-6 h-6" />
@@ -167,12 +169,17 @@ function ProjectCard({
           </div>
           <div className="flex gap-2 flex-wrap text-xs mb-2">
             {project.tags?.slice(0, 4).map((tag: string) => (
-              <span key={tag} className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200">
+              <span
+                key={tag}
+                className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200"
+              >
                 #{tag}
               </span>
             ))}
           </div>
-          <div className="text-xs text-gray-500 mb-2">Status: {project.status}</div>
+          <div className="text-xs text-gray-500 mb-2">
+            Status: {project.status}
+          </div>
         </div>
         <div className="flex items-center justify-between mt-2">
           <Link
@@ -181,6 +188,19 @@ function ProjectCard({
           >
             View Project
           </Link>
+          {author && author.unique_id && user && (
+            <Link
+              href={`/chat/${author.unique_id}`}
+              className="ml-2 text-blue-600 underline text-xs font-semibold hover:text-accent transition-colors bg-blue-50 px-2 py-1 rounded"
+            >
+              Contact the Creator
+            </Link>
+          )}
+          {project.adopter_id && (
+            <span className="ml-2 text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
+              Adopted{project.adopter_name ? ` by ${project.adopter_name}` : ""}
+            </span>
+          )}
         </div>
       </div>
     </motion.div>
@@ -202,9 +222,7 @@ export default function ProjectsPage() {
   useEffect(() => {
     const fetchProjects = async () => {
       setLoading(true);
-      let query = supabase
-        .from("projects")
-        .select("*", { count: "exact" });
+      const query = supabase.from("projects").select("*", { count: "exact" });
       // Fetch all projects, then filter/shuffle/paginate client-side
       const { data, error, count } = await query;
       if (error) {
@@ -222,6 +240,28 @@ export default function ProjectsPage() {
             (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(s)))
         );
       }
+      // Fetch adopter names for adopted projects
+      const adoptedIds = filtered
+        .filter((p: any) => p.adopter_id)
+        .map((p: any) => p.adopter_id);
+      let adopterMap: Record<string, string> = {};
+      if (adoptedIds.length > 0) {
+        const { data: adopters } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", adoptedIds);
+        adopterMap = (adopters || []).reduce(
+          (acc: Record<string, string>, curr: any) => {
+            acc[curr.id] = curr.name || "User";
+            return acc;
+          },
+          {}
+        );
+      }
+      // Add adopter_name to each project
+      filtered = filtered.map((p: any) =>
+        p.adopter_id ? { ...p, adopter_name: adopterMap[p.adopter_id] } : p
+      );
       // Shuffle
       for (let i = filtered.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -239,9 +279,16 @@ export default function ProjectsPage() {
       <main className="min-h-screen bg-white pb-20 pt-24">
         <section className="max-w-5xl mx-auto py-12 px-4">
           <div className="mb-8">
-            <div className="uppercase text-xs font-bold text-gray-500 tracking-widest mb-2">Explore Projects</div>
-            <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">Browse Our Open Initiatives</h1>
-            <div className="text-gray-700 text-sm md:text-base mb-6">Discover a variety of innovative projects seeking passionate collaborators to bring ideas to life.</div>
+            <div className="uppercase text-xs font-bold text-gray-500 tracking-widest mb-2">
+              Explore Projects
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">
+              Browse Our Open Initiatives
+            </h1>
+            <div className="text-gray-700 text-sm md:text-base mb-6">
+              Discover a variety of innovative projects seeking passionate
+              collaborators to bring ideas to life.
+            </div>
             {/* Search and Filter Bar */}
             <div className="flex flex-wrap gap-4 mb-8 items-center rounded-xl bg-white border border-gray-200 shadow px-6 py-4">
               <select
@@ -250,7 +297,11 @@ export default function ProjectsPage() {
                 className="border border-gray-300 bg-white rounded-xl px-4 py-2 text-gray-700 appearance-none"
               >
                 {categories.map((cat) => (
-                  <option key={cat} value={cat} className="text-gray-700 bg-white">
+                  <option
+                    key={cat}
+                    value={cat}
+                    className="text-gray-700 bg-white"
+                  >
                     {cat}
                   </option>
                 ))}
@@ -308,7 +359,9 @@ export default function ProjectsPage() {
             >
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
-            <span className="px-4 py-2 text-black font-bold">Page {page} of {totalPages}</span>
+            <span className="px-4 py-2 text-black font-bold">
+              Page {page} of {totalPages}
+            </span>
             <button
               className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
