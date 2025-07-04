@@ -16,12 +16,36 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(async ({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        // Fetch profile image from profiles table
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("profile_image")
+          .eq("id", data.user.id)
+          .single();
+        setProfileImage(profile?.profile_image || null);
+      } else {
+        setProfileImage(null);
+      }
+    });
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         setUser(session?.user || null);
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("profile_image")
+            .eq("id", session.user.id)
+            .single();
+          setProfileImage(profile?.profile_image || null);
+        } else {
+          setProfileImage(null);
+        }
       }
     );
     return () => {
@@ -39,30 +63,51 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 flex items-center bg-black transition-colors px-8 md:px-32 py-4">
-      <Link
-        href="/"
-        className="font-extrabold text-2xl tracking-wide text-white flex items-center"
-        style={{ minWidth: "220px" }}
-        onClick={handleLogoClick}
-      >
-        Inspiralor
-      </Link>
-      <div className="flex gap-5 text-base font-medium text-white justify-center flex-grow">
-        <Link href="/about">About Us</Link>
-        <Link href="/projects">Projects</Link>
-        <Link href="/projects/submit">Submit</Link>
-        {user && <Link href="/my-projects">My Projects</Link>}
+    <nav className="fixed top-0 left-0 w-full z-50 bg-black transition-colors px-4 md:px-16 py-3 flex items-center justify-between">
+      {/* Left: Nav Items */}
+      <div className="flex items-center gap-5 min-w-[220px]">
+        <Link
+          href="/about"
+          className="text-white font-medium text-base hover:underline"
+        >
+          About Us
+        </Link>
+        <Link
+          href="/projects"
+          className="text-white font-medium text-base hover:underline"
+        >
+          Projects
+        </Link>
+        <Link
+          href="/projects/submit"
+          className="text-white font-medium text-base hover:underline"
+        >
+          Submit
+        </Link>
+        {user && (
+          <Link
+            href="/my-projects"
+            className="text-white font-medium text-base hover:underline"
+          >
+            My Projects
+          </Link>
+        )}
       </div>
-      <div className="flex items-center gap-4">
+      {/* Center: Title */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center">
+        <Link
+          href="/"
+          className="font-extrabold text-2xl tracking-wide text-white flex items-center"
+          style={{ minWidth: "220px" }}
+          onClick={handleLogoClick}
+        >
+          Inspiralor
+        </Link>
+      </div>
+      {/* Right: Auth/Profile Actions */}
+      <div className="flex items-center gap-4 min-w-[160px] justify-end">
         {user ? (
           <>
-            <Link
-              href={profileLink}
-              className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-sky-400 via-blue-500 to-indigo-600 hover:from-sky-500 hover:to-indigo-700"
-            >
-              Profile
-            </Link>
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
@@ -72,6 +117,16 @@ export default function Navbar() {
             >
               Sign Out
             </button>
+            <Link href={profileLink} className="flex items-center">
+              <Image
+                src={profileImage || "/images/Me/me.jpeg"}
+                alt="Profile"
+                width={40}
+                height={40}
+                className="rounded-full object-cover border-2 border-white shadow-md bg-white hover:scale-105 transition-transform"
+                priority
+              />
+            </Link>
           </>
         ) : (
           <button
