@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
-import { useAuth } from "@/components/AuthContext";
+import { ErrorMessage } from "@/components/ErrorMessage";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -69,9 +69,7 @@ export default function LoginPage() {
             className="border border-border bg-surface/60 rounded-xl px-4 py-2 text-white placeholder:text-muted focus:ring-2 focus:ring-primary outline-none"
             required
           />
-          {error && (
-            <div className="text-red-500 font-semibold text-sm">{error}</div>
-          )}
+          <ErrorMessage message={error} />
           <motion.button
             type="submit"
             className="mt-2 bg-primary text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-accent transition-colors disabled:opacity-50"

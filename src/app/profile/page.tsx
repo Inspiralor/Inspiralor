@@ -14,6 +14,7 @@ import {
 import { nanoid } from "nanoid";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/AuthContext";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 type Project = {
   id: string;
@@ -246,12 +247,13 @@ export default function ProfilePage() {
     setPosted(posted.filter((p) => p.id !== projectId));
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center py-10 px-4">
-        Loading...
-      </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size={32} />
+      </div>
     );
+  }
   if (!user)
     return (
       <main className="min-h-screen flex items-center justify-center py-10 px-4">

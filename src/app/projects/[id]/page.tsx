@@ -7,6 +7,8 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/AuthContext";
+import { Button } from "@/components/Button";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 type Project = {
   id: string;
@@ -93,8 +95,8 @@ export default function ProjectDetailPage() {
 
   if (loading)
     return (
-      <main className="max-w-2xl mx-auto py-10 px-4 text-black">
-        Loading...
+      <main className="max-w-2xl mx-auto py-10 px-4 text-black flex items-center justify-center min-h-[200px]">
+        <LoadingSpinner size={32} />
       </main>
     );
   if (!project)
@@ -269,46 +271,43 @@ export default function ProjectDetailPage() {
           <div className="flex gap-4 mt-6">
             {user && user.id !== project.creator_id && (
               <>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.03 }}
-                  className={`bg-green-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition-colors ${
-                    hasAdopted
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-accent"
-                  }`}
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="font-bold shadow-lg"
                   onClick={hasAdopted ? undefined : handleAdopt}
                   disabled={hasAdopted}
                 >
                   {hasAdopted ? "You Adopted This Project" : "Adopt Project"}
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.03 }}
-                  className="bg-blue-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-accent transition-colors"
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="font-bold shadow-lg"
+                  disabled
                 >
                   Remix / Continue
-                </motion.button>
+                </Button>
               </>
             )}
             {user && project && user.id === project.creator_id && (
               <>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.03 }}
-                  className="bg-yellow-600 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-white hover:text-primary transition-colors"
+                <Button
+                  variant="secondary"
+                  size="md"
+                  className="font-bold shadow-lg"
                   onClick={() => router.push(`/projects/${project.id}/edit`)}
                 >
                   Edit
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.03 }}
-                  className="bg-red-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg hover:bg-red-900 transition-colors"
+                </Button>
+                <Button
+                  variant="danger"
+                  size="md"
+                  className="font-bold shadow-lg"
                   onClick={handleDelete}
                 >
                   Delete
-                </motion.button>
+                </Button>
               </>
             )}
           </div>

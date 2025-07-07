@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/components/AuthContext";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function Navbar() {
   const router = useRouter();
@@ -106,14 +106,7 @@ export default function Navbar() {
               Sign Out
             </button>
             <Link href={profileLink} className="flex items-center">
-              <Image
-                src={profileImage || "/images/Me/me.jpeg"}
-                alt="Profile"
-                width={40}
-                height={40}
-                className="rounded-full object-cover border-2 border-white shadow-md bg-white hover:scale-105 transition-transform"
-                priority
-              />
+              <UserAvatar src={profileImage} size={40} />
             </Link>
           </>
         ) : (

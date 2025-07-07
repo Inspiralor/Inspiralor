@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/components/AuthContext";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 // Types
 interface ProjectFile {
@@ -204,8 +205,8 @@ export default function Landing() {
   // Now do the early return
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-white">
-        Loading...
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner size={32} />
       </div>
     );
   }

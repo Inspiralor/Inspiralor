@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
-import { ProjectCard } from "../my-projects/page";
+import { ProjectCard } from "@/components/ProjectCard";
 import Navbar from "@/components/Navbar";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function AdoptedProjectsPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -48,7 +49,7 @@ export default function AdoptedProjectsPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <LoadingSpinner size={32} />
       </div>
     );
   }
@@ -75,7 +76,7 @@ export default function AdoptedProjectsPage() {
           ) : (
             <div className="flex flex-col gap-6">
               {adopted.map((p) => (
-                <ProjectCard key={p.id} project={p} />
+                <ProjectCard key={p.id} project={p} adopted={true} />
               ))}
             </div>
           )}
