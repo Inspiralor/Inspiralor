@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/components/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");

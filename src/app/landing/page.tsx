@@ -3,10 +3,10 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { FaHeart, FaRegHeart } from "react-icons/fa6";
-import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/components/AuthContext";
 
 // Types
 interface ProjectFile {
@@ -33,8 +33,7 @@ interface Profile {
 }
 
 export default function Landing() {
-  // User state
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   // Projects state
   const [projects, setProjects] = useState<Project[]>([]);
@@ -115,32 +114,29 @@ export default function Landing() {
   // Fetch user and profile
   useEffect(() => {
     const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("id, name, profile_image")
-          .eq("id", user.id)
-          .single();
-        setProfile(profile);
-        // Fetch favourites
-        const { data: favs } = await supabase
-          .from("favourites")
-          .select("project_id")
-          .eq("user_id", user.id);
-        setFavourites(
-          (favs || []).map((f: { project_id: string }) => f.project_id)
-        );
-      } else {
+      if (!user) {
         router.replace("/login");
+        setLoading(false);
+        return;
       }
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("id, name, profile_image")
+        .eq("id", user.id)
+        .single();
+      setProfile(profile);
+      // Fetch favourites
+      const { data: favs } = await supabase
+        .from("favourites")
+        .select("project_id")
+        .eq("user_id", user.id);
+      setFavourites(
+        (favs || []).map((f: { project_id: string }) => f.project_id)
+      );
       setLoading(false);
     };
     fetchUser();
-  }, []);
+  }, [user]);
 
   // Fetch latest projects
   useEffect(() => {

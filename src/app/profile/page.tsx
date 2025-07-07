@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
-import type { User } from "@supabase/supabase-js";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import {
@@ -14,6 +13,7 @@ import {
 } from "react-icons/fa6";
 import { nanoid } from "nanoid";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/components/AuthContext";
 
 type Project = {
   id: string;
@@ -47,7 +47,7 @@ const SOCIALS = [
 ];
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posted, setPosted] = useState<Project[]>([]);
   const [adopted, setAdopted] = useState<Project[]>([]);
@@ -71,10 +71,6 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
       if (!user) return setLoading(false);
       // Fetch profile
       let { data: profile } = await supabase
@@ -179,7 +175,7 @@ export default function ProfilePage() {
       setLoading(false);
     };
     fetchProfile();
-  }, []);
+  }, [user]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!user || !e.target.files || e.target.files.length === 0) return;

@@ -4,15 +4,18 @@ import { io, Socket } from "socket.io-client";
 import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/components/AuthContext";
 
 let socket: Socket | null = null;
 
 export default function DirectChatPage() {
   const { id: otherUserId } = useParams<{ id: string }>();
-  const [user, setUser] = useState<{ id: string; name?: string } | null>(null);
+  const { user } = useAuth();
+  const [userName, setUserName] = useState<string>("You");
   const [otherUser, setOtherUser] = useState<{
     id: string;
-    name?: string;
+    name: string;
+    profile_image: string | null;
   } | null>(null);
   const [messages, setMessages] = useState<{ user: string; text: string }[]>(
     []
@@ -20,20 +23,6 @@ export default function DirectChatPage() {
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [room, setRoom] = useState<string | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user) {
-        // Fetch profile for name
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("name")
-          .eq("id", data.user.id)
-          .single();
-        setUser({ id: data.user.id, name: profile?.name || "You" });
-      }
-    });
-  }, []);
 
   useEffect(() => {
     if (otherUserId) {
@@ -76,15 +65,28 @@ export default function DirectChatPage() {
   }, [user, otherUserId]);
 
   useEffect(() => {
+    if (!user) return;
+    // Fetch profile for name
+    supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        setUserName(data?.name || "You");
+      });
+  }, [user]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !user || !room) return;
-    const msg = { user: user.name || "You", text: input, room };
+    if (!input.trim() || !user) return;
+    const msg = { user: userName || "You", text: input };
     socket?.emit("chat message", msg);
-    setMessages((prev) => [...prev, { user: user.name || "You", text: input }]);
+    setMessages((prev) => [...prev, msg]);
     setInput("");
   };
 
@@ -104,20 +106,18 @@ export default function DirectChatPage() {
               <div
                 key={i}
                 className={`mb-2 flex ${
-                  msg.user === (user?.name || "You")
-                    ? "justify-end"
-                    : "justify-start"
+                  msg.user === userName ? "justify-end" : "justify-start"
                 }`}
               >
                 <span
                   className={`inline-block px-4 py-2 rounded-lg max-w-[70%] break-words shadow ${
-                    msg.user === (user?.name || "You")
+                    msg.user === userName
                       ? "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white"
                       : "bg-white text-black"
                   }`}
                 >
                   <span className="block text-xs font-bold mb-1">
-                    {msg.user === (user?.name || "You") ? "You" : msg.user}
+                    {msg.user === userName ? "You" : msg.user}
                   </span>
                   {msg.text}
                 </span>

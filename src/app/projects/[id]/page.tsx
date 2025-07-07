@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import { useAuth } from "@/components/AuthContext";
 
 type Project = {
   id: string;
@@ -27,7 +27,7 @@ export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [author, setAuthor] = useState<{
     name: string;
     unique_id: string;
@@ -49,10 +49,6 @@ export default function ProjectDetailPage() {
     };
     if (id) fetchProject();
   }, [id]);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-  }, []);
 
   useEffect(() => {
     const fetchAuthor = async () => {
