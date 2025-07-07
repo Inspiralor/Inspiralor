@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { useAuth } from "@/components/AuthContext";
 
 type Project = {
   id: string;
@@ -30,20 +31,12 @@ function ProjectCard({
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
   );
-  const [user, setUser] = useState<{ id: string } | null>(null);
-  const [userLoading, setUserLoading] = useState(true);
+  const { user, loading: userLoading } = useAuth();
   const [favourites, setFavourites] = useState<string[]>([]);
   const [author, setAuthor] = useState<{
     name: string;
     unique_id: string;
   } | null>(null);
-
-  useEffect(() => {
-    supabase.auth.getUser().then((result) => {
-      setUser(result.data.user);
-      setUserLoading(false);
-    });
-  }, []);
 
   useEffect(() => {
     const fetchFavourites = async () => {
@@ -193,6 +186,7 @@ function ProjectCard({
   );
 }
 
+export { ProjectCard };
 export default function MyProjectsPage() {
   const [user, setUser] = useState<{ id: string } | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);

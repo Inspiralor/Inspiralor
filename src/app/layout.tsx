@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import Image from "next/image";
+import { AuthProvider } from "@/components/AuthContext";
 import { FaLinkedin, FaXTwitter, FaFacebook } from "react-icons/fa6";
 
 const geistSans = Geist({
@@ -31,8 +31,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navbar />
-        {children}
+        <AuthProvider>
+          <Navbar />
+          {children}
+        </AuthProvider>
         <footer className="w-full bg-black py-10 text-white">
           <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
             <div className="w-full flex flex-col md:flex-row items-center justify-center gap-12 mb-4 relative">

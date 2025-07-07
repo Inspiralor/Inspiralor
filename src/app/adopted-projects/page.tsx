@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
-import Link from "next/link";
+import { ProjectCard } from "../my-projects/page";
 import Navbar from "@/components/Navbar";
 
 export default function AdoptedProjectsPage() {
@@ -32,7 +32,9 @@ export default function AdoptedProjectsPage() {
         );
         const { data: adoptedProjects } = await supabase
           .from("projects")
-          .select("id, title, category, status")
+          .select(
+            "id, title, description, category, tags, status, files, creator_id"
+          )
           .in("id", projectIds);
         setAdopted(adoptedProjects || []);
       } else {
@@ -71,21 +73,11 @@ export default function AdoptedProjectsPage() {
               You have not adopted any projects yet.
             </div>
           ) : (
-            <ul className="list-disc ml-6">
+            <div className="flex flex-col gap-6">
               {adopted.map((p) => (
-                <li key={p.id}>
-                  <Link
-                    href={`/projects/${p.id}`}
-                    className="text-accent underline"
-                  >
-                    {p.title}
-                  </Link>{" "}
-                  <span className="text-xs text-muted">
-                    ({p.category}, {p.status})
-                  </span>
-                </li>
+                <ProjectCard key={p.id} project={p} />
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </main>

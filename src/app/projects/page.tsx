@@ -8,6 +8,7 @@ import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { useAuth } from "@/components/AuthContext";
 
 const categories = [
   "All",
@@ -50,19 +51,13 @@ function ProjectCard({
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
   );
-  const [user, setUser] = useState<{ id: string } | null>(null);
+  const { user } = useAuth();
   const [favourites, setFavourites] = useState<string[]>([]);
   const [author, setAuthor] = useState<{
     name: string;
     unique_id: string;
   } | null>(null);
   const [adopters, setAdopters] = useState<{ id: string; name: string }[]>([]);
-
-  useEffect(() => {
-    supabase.auth.getUser().then((result) => {
-      setUser(result.data.user);
-    });
-  }, []);
 
   useEffect(() => {
     const fetchFavourites = async () => {

@@ -2,52 +2,33 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/components/AuthContext";
 import { useRouter } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
 import Image from "next/image";
 
 export default function Navbar() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading } = useAuth();
   const [profileImage, setProfileImage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data }) => {
-      setUser(data.user);
-      if (data.user) {
-        // Fetch profile image from profiles table
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("profile_image")
-          .eq("id", data.user.id)
-          .single();
-        setProfileImage(profile?.profile_image || null);
-      } else {
-        setProfileImage(null);
-      }
-      setLoading(false);
-    });
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setUser(session?.user || null);
-        if (session?.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("profile_image")
-            .eq("id", session.user.id)
-            .single();
-          setProfileImage(profile?.profile_image || null);
-        } else {
-          setProfileImage(null);
-        }
-        setLoading(false);
-      }
-    );
+    if (!user) {
+      setProfileImage(null);
+      return;
+    }
+    let isMounted = true;
+    supabase
+      .from("profiles")
+      .select("profile_image")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (isMounted) setProfileImage(data?.profile_image || null);
+      });
     return () => {
-      listener?.subscription.unsubscribe();
+      isMounted = false;
     };
-  }, []);
+  }, [user]);
 
   const profileLink = user ? `/profile/${user.id}` : "/profile";
 
