@@ -96,7 +96,11 @@ export default function ProjectDetailPage() {
   }, [project, user]);
 
   if (loading)
-    return <main className="max-w-2xl mx-auto py-10 px-4">Loading...</main>;
+    return (
+      <main className="max-w-2xl mx-auto py-10 px-4 text-black">
+        Loading...
+      </main>
+    );
   if (!project)
     return (
       <main className="max-w-2xl mx-auto py-10 px-4">Project not found.</main>

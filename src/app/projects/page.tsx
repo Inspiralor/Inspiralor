@@ -328,7 +328,7 @@ export default function ProjectsPage() {
             </div>
           </div>
           {loading ? (
-            <div className="text-center text-muted py-10">Loading...</div>
+            <div className="text-center text-black py-10">Loading...</div>
           ) : (
             <div>
               {projects.length === 0 ? (
