@@ -74,7 +74,7 @@ export default function MyProjectsPage() {
           ) : projects.length === 0 ? (
             <div className="text-muted">No projects found.</div>
           ) : (
-            <div>
+            <div className="flex flex-col gap-6">
               {projects.map((project) => (
                 <ProjectCard
                   key={project.id}

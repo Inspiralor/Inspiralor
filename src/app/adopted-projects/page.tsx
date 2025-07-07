@@ -64,23 +64,36 @@ export default function AdoptedProjectsPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex flex-col items-center py-10 px-4 pt-24">
-        <div className="w-full max-w-3xl rounded-xl bg-glass shadow-glass p-8 border border-border backdrop-blur-md">
-          <h1 className="text-3xl font-bold mb-6 text-primary">
-            Adopted Projects
-          </h1>
+      <main className="min-h-screen bg-white pb-20 pt-24">
+        <section className="max-w-5xl mx-auto py-12 px-4">
+          <div className="mb-8">
+            <div className="uppercase text-xs font-bold text-gray-500 tracking-widest mb-2">
+              Adopted Projects
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">
+              Browse Your Adopted Projects
+            </h1>
+            <div className="text-gray-700 text-sm md:text-base mb-6">
+              All the projects you have adopted are listed below.
+            </div>
+          </div>
           {adopted.length === 0 ? (
-            <div className="text-muted">
+            <div className="text-center text-muted">
               You have not adopted any projects yet.
             </div>
           ) : (
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-8">
               {adopted.map((p) => (
-                <ProjectCard key={p.id} project={p} adopted={true} />
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  adopted={true}
+                  showAdopterNames={true}
+                />
               ))}
             </div>
           )}
-        </div>
+        </section>
       </main>
     </>
   );

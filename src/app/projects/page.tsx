@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import Link from "next/link";
 import { ProjectCard } from "@/components/ProjectCard";
+import { useAuth } from "@/components/AuthContext";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
@@ -82,6 +82,78 @@ export default function ProjectsPage() {
     fetchProjects();
   }, [search, page]);
 
+  const { user } = useAuth();
+  const [adoptersMap, setAdoptersMap] = useState<
+    Record<string, { id: string; name: string }[]>
+  >({});
+  const [authorMap, setAuthorMap] = useState<
+    Record<string, { unique_id: string }>
+  >({});
+
+  useEffect(() => {
+    // Fetch adopters and authors for all projects
+    const fetchAdoptersAndAuthors = async () => {
+      if (projects.length === 0) return;
+      // Adopters
+      const projectIds = projects.map((p) => p.id);
+      const { data: adoptions } = await supabase
+        .from("adoptions")
+        .select("project_id, adopter_id");
+      const adoptersByProject: Record<string, string[]> = {};
+      (adoptions || []).forEach(
+        (a: { project_id: string; adopter_id: string }) => {
+          if (!adoptersByProject[a.project_id])
+            adoptersByProject[a.project_id] = [];
+          adoptersByProject[a.project_id].push(a.adopter_id);
+        }
+      );
+      // Fetch adopter profiles
+      const allAdopterIds = Array.from(
+        new Set(
+          (adoptions || []).map((a: { adopter_id: string }) => a.adopter_id)
+        )
+      );
+      let adopterProfiles: { id: string; name: string }[] = [];
+      if (allAdopterIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", allAdopterIds);
+        adopterProfiles = profiles || [];
+      }
+      const adoptersMap: Record<string, { id: string; name: string }[]> = {};
+      for (const pid of projectIds) {
+        adoptersMap[pid] = (adoptersByProject[pid] || []).map(
+          (aid) =>
+            adopterProfiles.find((p) => p.id === aid) || {
+              id: aid,
+              name: "User",
+            }
+        );
+      }
+      setAdoptersMap(adoptersMap);
+      // Authors
+      const creatorIds = Array.from(
+        new Set(projects.map((p) => p.creator_id).filter(Boolean))
+      );
+      let authorProfiles: { id: string; unique_id: string }[] = [];
+      if (creatorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, unique_id")
+          .in("id", creatorIds);
+        authorProfiles = profiles || [];
+      }
+      const authorMap: Record<string, { unique_id: string }> = {};
+      for (const p of projects) {
+        const author = authorProfiles.find((a) => a.id === p.creator_id);
+        if (author) authorMap[p.id] = { unique_id: author.unique_id };
+      }
+      setAuthorMap(authorMap);
+    };
+    fetchAdoptersAndAuthors();
+  }, [projects]);
+
   return (
     <>
       <main className="min-h-screen bg-white pb-20 pt-24">
@@ -138,21 +210,34 @@ export default function ProjectsPage() {
             </div>
           </div>
           {loading ? (
-            <div className="text-center text-black py-10">Loading...</div>
+            <div className="text-center text-muted py-10">Loading...</div>
           ) : (
             <div>
               {projects.length === 0 ? (
                 <div className="text-center text-muted">No projects found.</div>
               ) : (
                 <div>
-                  {projects.map((p, i) => (
-                    <div key={p.id}>
-                      <ProjectCard project={p} delay={0.05 * i} />
-                      {i !== projects.length - 1 && (
-                        <hr className="my-8 border-gray-200" />
-                      )}
-                    </div>
-                  ))}
+                  {projects.map((p, i) => {
+                    const author = authorMap[p.id];
+                    const adopters = adoptersMap[p.id];
+                    const contactCreatorUrl =
+                      author && user && user.id !== p.creator_id
+                        ? `/chat/${author.unique_id}`
+                        : undefined;
+                    return (
+                      <div key={p.id}>
+                        <ProjectCard
+                          project={p}
+                          delay={0.05 * i}
+                          adopters={adopters}
+                          contactCreatorUrl={contactCreatorUrl}
+                        />
+                        {i !== projects.length - 1 && (
+                          <hr className="my-8 border-gray-200" />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -27,6 +27,9 @@ interface ProjectCardProps {
   showDelete?: boolean;
   showAuthor?: boolean;
   adopted?: boolean;
+  adopters?: { id: string; name: string }[];
+  contactCreatorUrl?: string;
+  showAdopterNames?: boolean;
 }
 
 export function ProjectCard({
@@ -37,6 +40,9 @@ export function ProjectCard({
   showDelete = false,
   showAuthor = true,
   adopted = false,
+  adopters,
+  contactCreatorUrl,
+  showAdopterNames,
 }: ProjectCardProps) {
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
@@ -118,7 +124,7 @@ export function ProjectCard({
         </Button>
       )}
       {/* Image Section */}
-      <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200 flex items-center justify-center">
+      <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200">
         {imageFile ? (
           <Image
             src={imageFile.url}
@@ -126,6 +132,7 @@ export function ProjectCard({
             width={288}
             height={224}
             className="object-cover w-full h-full"
+            style={{ display: "block" }}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-2xl">
@@ -134,7 +141,7 @@ export function ProjectCard({
         )}
       </div>
       {/* Info Section */}
-      <div className="flex-1 flex flex-col justify-between p-6">
+      <div className="flex-1 flex flex-col justify-between p-2">
         <div>
           <div className="flex items-center justify-between mb-2">
             <Link
@@ -197,7 +204,27 @@ export function ProjectCard({
             </span>
           )}
         </div>
-        <div className="flex items-center justify-between mt-2">
+        <div className="flex items-center justify-between mt-2 gap-2">
+          <div className="flex gap-2 items-center">
+            {contactCreatorUrl && (
+              <a
+                href={contactCreatorUrl}
+                className="text-blue-600 underline text-xs font-semibold hover:text-accent transition-colors bg-blue-50 px-2 py-1 rounded"
+              >
+                Contact the Creator
+              </a>
+            )}
+            {adopted && (
+              <span className="text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
+                Adopted
+              </span>
+            )}
+            {adopters && adopters.length > 0 && showAdopterNames && (
+              <span className="text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
+                Adopted by {adopters.map((a) => a.name).join(", ")}
+              </span>
+            )}
+          </div>
           <Link
             href={`/projects/${project.id}`}
             className="text-emerald-600 underline text-xs font-semibold hover:text-accent transition-colors"
