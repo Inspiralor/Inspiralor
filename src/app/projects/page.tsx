@@ -57,7 +57,6 @@ function ProjectCard({
     unique_id: string;
   } | null>(null);
   const [adopters, setAdopters] = useState<{ id: string; name: string }[]>([]);
-  const [hasAdopted, setHasAdopted] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then((result) => {
@@ -108,10 +107,8 @@ function ProjectCard({
           .select("id, name")
           .in("id", adopterIds);
         setAdopters(profiles || []);
-        if (user) setHasAdopted(adopterIds.includes(user.id));
       } else {
         setAdopters([]);
-        setHasAdopted(false);
       }
     };
     fetchAdopters();
@@ -189,9 +186,9 @@ function ProjectCard({
             {project.description}
           </div>
           <div className="flex gap-2 flex-wrap text-xs mb-2">
-            {project.tags?.slice(0, 4).map((tag: string) => (
+            {project.tags?.slice(0, 4).map((tag: string, idx: number) => (
               <span
-                key={tag}
+                key={tag + idx}
                 className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200"
               >
                 #{tag}
@@ -222,8 +219,7 @@ function ProjectCard({
             )}
           {adopters.length > 0 && (
             <span className="ml-2 text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
-              Adopted by {adopters.map((a) => a.name).join(", ")}
-              {hasAdopted && " (You)"}
+              Adopted
             </span>
           )}
         </div>
