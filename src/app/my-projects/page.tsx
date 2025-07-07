@@ -5,7 +5,6 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { useRouter } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 type Project = {
@@ -32,6 +31,7 @@ function ProjectCard({
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
   );
   const [user, setUser] = useState<{ id: string } | null>(null);
+  const [userLoading, setUserLoading] = useState(true);
   const [favourites, setFavourites] = useState<string[]>([]);
   const [author, setAuthor] = useState<{
     name: string;
@@ -41,6 +41,7 @@ function ProjectCard({
   useEffect(() => {
     supabase.auth.getUser().then((result) => {
       setUser(result.data.user);
+      setUserLoading(false);
     });
   }, []);
 
@@ -90,6 +91,7 @@ function ProjectCard({
 
   const isFavourited = favourites.includes(project.id);
   const isOwnProject = user && user.id === project.creator_id;
+  if (userLoading) return null;
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
@@ -98,11 +100,11 @@ function ProjectCard({
       className="relative flex bg-white rounded-xl border border-gray-200 shadow p-0 gap-0 items-stretch mb-0 hover:shadow-lg transition-all overflow-hidden"
     >
       {/* Favourite Button (hide for own projects) */}
-      {!isOwnProject && (
+      {!isOwnProject && user && (
         <button
           className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition-colors border border-gray-200"
           onClick={() => toggleFavourite(project.id)}
-          aria-label={isFavourited ? 'Unfavourite' : 'Favourite'}
+          aria-label={isFavourited ? "Unfavourite" : "Favourite"}
         >
           {isFavourited ? (
             <FaHeart className="text-emerald-500 w-6 h-6" />
@@ -153,14 +155,20 @@ function ProjectCard({
           </div>
           <div className="flex gap-2 flex-wrap text-xs mb-2">
             {project.tags?.slice(0, 4).map((tag: string) => (
-              <span key={tag} className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200">
+              <span
+                key={tag}
+                className="bg-gray-100 text-black rounded px-2 py-0.5 border border-gray-200"
+              >
                 #{tag}
               </span>
             ))}
           </div>
-          <div className="text-xs text-gray-500 mb-2">Status: {project.status}</div>
-          <div className="text-xs mt-2">
-            by {author ? (
+          <div className="text-xs text-gray-500 mb-2">
+            Status: {project.status}
+          </div>
+          <div className="text-xs mt-2 text-black">
+            by{" "}
+            {author ? (
               <Link
                 href={`/profile/${author.unique_id}`}
                 className="text-black hover:underline font-mono"
@@ -191,7 +199,6 @@ export default function MyProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const router = useRouter();
 
   useEffect(() => {
     supabase.auth.getUser().then((result) => {
@@ -248,7 +255,11 @@ export default function MyProjectsPage() {
             <div>
               {projects.map((p, i) => (
                 <div key={p.id}>
-                  <ProjectCard project={p} delay={0.05 * i} onDelete={handleDelete} />
+                  <ProjectCard
+                    project={p}
+                    delay={0.05 * i}
+                    onDelete={handleDelete}
+                  />
                   {i !== projects.length - 1 && (
                     <hr className="my-8 border-gray-200" />
                   )}
@@ -266,7 +277,9 @@ export default function MyProjectsPage() {
             >
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
-            <span className="px-4 py-2 text-black font-bold">Page {page} of {totalPages}</span>
+            <span className="px-4 py-2 text-black font-bold">
+              Page {page} of {totalPages}
+            </span>
             <button
               className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}

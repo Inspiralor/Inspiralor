@@ -10,6 +10,7 @@ export default function Navbar() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -25,6 +26,7 @@ export default function Navbar() {
       } else {
         setProfileImage(null);
       }
+      setLoading(false);
     });
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
@@ -39,6 +41,7 @@ export default function Navbar() {
         } else {
           setProfileImage(null);
         }
+        setLoading(false);
       }
     );
     return () => {
@@ -57,6 +60,7 @@ export default function Navbar() {
     }
   };
 
+  if (loading) return null;
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black transition-colors px-4 md:px-16 py-3 flex items-center justify-between">
       {/* Left: Nav Items */}
