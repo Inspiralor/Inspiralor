@@ -1,12 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 
 export default function AdoptedProjectsPage() {
-  const [user, setUser] = useState<any>(null);
-  const [adopted, setAdopted] = useState<any[]>([]);
+  const [user, setUser] = useState<User | null>(null);
+  const [adopted, setAdopted] = useState<
+    { id: string; title: string; category: string; status: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,11 +22,22 @@ export default function AdoptedProjectsPage() {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
-        .from("projects")
-        .select("id, title, category, status")
+      const { data: adoptions } = await supabase
+        .from("adoptions")
+        .select("project_id")
         .eq("adopter_id", user.id);
-      setAdopted(data || []);
+      if (adoptions && adoptions.length > 0) {
+        const projectIds = adoptions.map(
+          (a: { project_id: string }) => a.project_id
+        );
+        const { data: adoptedProjects } = await supabase
+          .from("projects")
+          .select("id, title, category, status")
+          .in("id", projectIds);
+        setAdopted(adoptedProjects || []);
+      } else {
+        setAdopted([]);
+      }
       setLoading(false);
     };
     fetchAdopted();

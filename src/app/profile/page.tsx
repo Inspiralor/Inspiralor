@@ -159,12 +159,23 @@ export default function ProfilePage() {
       } else {
         setFavourited([]);
       }
-      // Fetch adopted projects
-      const { data: adoptedProjects } = await supabase
-        .from("projects")
-        .select("id, title, category, status")
+      // Fetch adopted projects using adoptions table
+      const { data: adoptions } = await supabase
+        .from("adoptions")
+        .select("project_id")
         .eq("adopter_id", user.id);
-      setAdopted(adoptedProjects || []);
+      if (adoptions && adoptions.length > 0) {
+        const projectIds = adoptions.map(
+          (a: { project_id: string }) => a.project_id
+        );
+        const { data: adoptedProjects } = await supabase
+          .from("projects")
+          .select("id, title, category, status")
+          .in("id", projectIds);
+        setAdopted(adoptedProjects || []);
+      } else {
+        setAdopted([]);
+      }
       setLoading(false);
     };
     fetchProfile();

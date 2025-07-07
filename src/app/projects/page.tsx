@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
 
 const categories = [
@@ -38,20 +38,14 @@ type Project = {
   status: string;
   files?: { name: string; url: string }[];
   creator_id?: string;
-  adopter_id?: string;
-  adopter_name?: string;
 };
 
 function ProjectCard({
   project,
   delay = 0,
-  onDelete,
-  allowOwnFavourite = false,
 }: {
   project: Project;
   delay?: number;
-  onDelete?: (id: string) => void;
-  allowOwnFavourite?: boolean;
 }) {
   const imageFile = project.files?.find((f) =>
     /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
@@ -62,6 +56,8 @@ function ProjectCard({
     name: string;
     unique_id: string;
   } | null>(null);
+  const [adopters, setAdopters] = useState<{ id: string; name: string }[]>([]);
+  const [hasAdopted, setHasAdopted] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then((result) => {
@@ -95,6 +91,31 @@ function ProjectCard({
     };
     fetchAuthor();
   }, [project.creator_id]);
+
+  useEffect(() => {
+    const fetchAdopters = async () => {
+      if (!project.id) return;
+      const { data: adoptions } = await supabase
+        .from("adoptions")
+        .select("adopter_id")
+        .eq("project_id", project.id);
+      if (adoptions && adoptions.length > 0) {
+        const adopterIds = adoptions.map(
+          (a: { adopter_id: string }) => a.adopter_id
+        );
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", adopterIds);
+        setAdopters(profiles || []);
+        if (user) setHasAdopted(adopterIds.includes(user.id));
+      } else {
+        setAdopters([]);
+        setHasAdopted(false);
+      }
+    };
+    fetchAdopters();
+  }, [project.id, user]);
 
   const toggleFavourite = async (projectId: string) => {
     if (!user) return;
@@ -188,17 +209,21 @@ function ProjectCard({
           >
             View Project
           </Link>
-          {author && author.unique_id && user && (
-            <Link
-              href={`/chat/${author.unique_id}`}
-              className="ml-2 text-blue-600 underline text-xs font-semibold hover:text-accent transition-colors bg-blue-50 px-2 py-1 rounded"
-            >
-              Contact the Creator
-            </Link>
-          )}
-          {project.adopter_id && (
+          {author &&
+            author.unique_id &&
+            user &&
+            user.id !== project.creator_id && (
+              <Link
+                href={`/chat/${author.unique_id}`}
+                className="ml-2 text-blue-600 underline text-xs font-semibold hover:text-accent transition-colors bg-blue-50 px-2 py-1 rounded"
+              >
+                Contact the Creator
+              </Link>
+            )}
+          {adopters.length > 0 && (
             <span className="ml-2 text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
-              Adopted{project.adopter_name ? ` by ${project.adopter_name}` : ""}
+              Adopted by {adopters.map((a) => a.name).join(", ")}
+              {hasAdopted && " (You)"}
             </span>
           )}
         </div>
@@ -215,7 +240,6 @@ export default function ProjectsPage() {
   const [tag, setTag] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
 
@@ -224,44 +248,22 @@ export default function ProjectsPage() {
       setLoading(true);
       const query = supabase.from("projects").select("*", { count: "exact" });
       // Fetch all projects, then filter/shuffle/paginate client-side
-      const { data, error, count } = await query;
+      const { data, error } = await query;
       if (error) {
         setProjects([]);
         setLoading(false);
         return;
       }
-      let filtered = data || [];
+      let filtered: Project[] = data || [];
       if (search) {
         const s = search.toLowerCase();
         filtered = filtered.filter(
-          (p: any) =>
+          (p: Project) =>
             p.title.toLowerCase().includes(s) ||
             p.description?.toLowerCase().includes(s) ||
             (p.tags && p.tags.some((t: string) => t.toLowerCase().includes(s)))
         );
       }
-      // Fetch adopter names for adopted projects
-      const adoptedIds = filtered
-        .filter((p: any) => p.adopter_id)
-        .map((p: any) => p.adopter_id);
-      let adopterMap: Record<string, string> = {};
-      if (adoptedIds.length > 0) {
-        const { data: adopters } = await supabase
-          .from("profiles")
-          .select("id, name")
-          .in("id", adoptedIds);
-        adopterMap = (adopters || []).reduce(
-          (acc: Record<string, string>, curr: any) => {
-            acc[curr.id] = curr.name || "User";
-            return acc;
-          },
-          {}
-        );
-      }
-      // Add adopter_name to each project
-      filtered = filtered.map((p: any) =>
-        p.adopter_id ? { ...p, adopter_name: adopterMap[p.adopter_id] } : p
-      );
       // Shuffle
       for (let i = filtered.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));

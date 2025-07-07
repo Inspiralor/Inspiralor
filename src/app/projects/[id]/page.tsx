@@ -21,8 +21,6 @@ type Project = {
   files: { name: string; url: string }[];
   creator_id: string;
   created_at: string;
-  adopter_id: string | null;
-  adopted_by: string[];
 };
 
 export default function ProjectDetailPage() {
@@ -35,6 +33,7 @@ export default function ProjectDetailPage() {
     unique_id: string;
   } | null>(null);
   const [adopters, setAdopters] = useState<{ id: string; name: string }[]>([]);
+  const [hasAdopted, setHasAdopted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -72,18 +71,29 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     const fetchAdopters = async () => {
       if (!project?.id) return;
-      if (project.adopted_by && project.adopted_by.length > 0) {
-        const { data } = await supabase
+      // Get all adoptions for this project
+      const { data: adoptions } = await supabase
+        .from("adoptions")
+        .select("adopter_id")
+        .eq("project_id", project.id);
+      if (adoptions && adoptions.length > 0) {
+        const adopterIds = adoptions.map(
+          (a: { adopter_id: string }) => a.adopter_id
+        );
+        // Get adopter profiles
+        const { data: profiles } = await supabase
           .from("profiles")
           .select("id, name")
-          .in("id", project.adopted_by);
-        setAdopters(data || []);
+          .in("id", adopterIds);
+        setAdopters(profiles || []);
+        if (user) setHasAdopted(adopterIds.includes(user.id));
       } else {
         setAdopters([]);
+        setHasAdopted(false);
       }
     };
     fetchAdopters();
-  }, [project]);
+  }, [project, user]);
 
   if (loading)
     return <main className="max-w-2xl mx-auto py-10 px-4">Loading...</main>;
@@ -102,22 +112,18 @@ export default function ProjectDetailPage() {
   // In handleAdopt, update the adopted_by array in the database
   const handleAdopt = async () => {
     if (!user || !project) return;
-    // 1. Add user.id to adopted_by array (if not already present)
-    // If user.id is already in adopted_by, do nothing
-    if ((project.adopted_by || []).includes(user.id)) return;
-    const newAdoptedBy = [...(project.adopted_by || []), user.id];
-    const { error: updateError } = await supabase
-      .from("projects")
-      .update({
-        adopted_by: newAdoptedBy,
-        status: "restarted",
-      })
-      .eq("id", project.id);
-    if (updateError) {
-      alert("Failed to update project status: " + updateError.message);
+    if (hasAdopted) return;
+    // Insert into adoptions table
+    const { error: insertError } = await supabase
+      .from("adoptions")
+      .insert([{ project_id: project.id, adopter_id: user.id }]);
+    if (insertError) {
+      alert("Failed to adopt project: " + insertError.message);
       return;
     }
-    // 2. Send email to creator (placeholder for API call)
+    // Optionally, update project status if you want
+    // await supabase.from("projects").update({ status: "restarted" }).eq("id", project.id);
+    // Send email to creator (placeholder for API call)
     try {
       const res = await fetch("/api/adopt", {
         method: "POST",
@@ -130,14 +136,24 @@ export default function ProjectDetailPage() {
       });
       if (!res.ok) throw new Error("Failed to send email");
       alert("Project adopted! The creator has been notified.");
-      // Optionally, refresh project data
-      setProject({
-        ...project,
-        status: "restarted",
-        adopted_by: [...(project.adopted_by || []), user.id],
-      });
+      setHasAdopted(true);
+      // Optionally, refresh adopters
+      const { data: adoptions } = await supabase
+        .from("adoptions")
+        .select("adopter_id")
+        .eq("project_id", project.id);
+      if (adoptions && adoptions.length > 0) {
+        const adopterIds = adoptions.map(
+          (a: { adopter_id: string }) => a.adopter_id
+        );
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name")
+          .in("id", adopterIds);
+        setAdopters(profiles || []);
+      }
     } catch {
-      alert("Project status updated, but failed to send email notification.");
+      alert("Project adopted, but failed to send email notification.");
     }
   };
 
@@ -153,7 +169,7 @@ export default function ProjectDetailPage() {
         >
           <h1 className="text-4xl font-bold mb-2 text-primary font-display">
             {project.title}
-            {project.adopter_id && (
+            {hasAdopted && (
               <span className="ml-4 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-semibold align-middle">
                 Adopted
               </span>
@@ -251,26 +267,20 @@ export default function ProjectDetailPage() {
             </div>
           )}
           <div className="flex gap-4 mt-6">
-            {user && (
+            {user && user.id !== project.creator_id && (
               <>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ scale: 1.03 }}
                   className={`bg-green-700 text-white px-6 py-2 rounded-xl font-bold shadow-lg transition-colors ${
-                    (project.adopted_by || []).includes(user.id)
+                    hasAdopted
                       ? "opacity-50 cursor-not-allowed"
                       : "hover:bg-accent"
                   }`}
-                  onClick={
-                    (project.adopted_by || []).includes(user.id)
-                      ? undefined
-                      : handleAdopt
-                  }
-                  disabled={(project.adopted_by || []).includes(user.id)}
+                  onClick={hasAdopted ? undefined : handleAdopt}
+                  disabled={hasAdopted}
                 >
-                  {(project.adopted_by || []).includes(user.id)
-                    ? "You Adopted This Project"
-                    : "Adopt Project"}
+                  {hasAdopted ? "You Adopted This Project" : "Adopt Project"}
                 </motion.button>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
