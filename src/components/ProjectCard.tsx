@@ -198,39 +198,40 @@ export function ProjectCard({
               )}
             </div>
           )}
-          {adopted && (
-            <span className="ml-2 text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
-              Adopted
-            </span>
-          )}
         </div>
-        <div className="flex items-center justify-between mt-2 gap-2">
-          <div className="flex gap-2 items-center">
-            {contactCreatorUrl && (
+        <div className="flex items-center justify-between mt-2 gap-2 w-full">
+          {/* Adopted tag (always reserve space) */}
+          <div className="flex-1 flex justify-center">
+            {adopted ? (
+              <span className="text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
+                Adopted
+              </span>
+            ) : (
+              <span className="invisible text-xs px-2 py-1">Adopted</span>
+            )}
+          </div>
+          {/* Contact the Creator (always reserve space) */}
+          <div className="flex-1 flex justify-center">
+            {contactCreatorUrl && adopted ? (
               <a
                 href={contactCreatorUrl}
                 className="text-blue-600 underline text-xs font-semibold hover:text-accent transition-colors bg-blue-50 px-2 py-1 rounded"
               >
                 Contact the Creator
               </a>
-            )}
-            {adopted && (
-              <span className="text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
-                Adopted
-              </span>
-            )}
-            {adopters && adopters.length > 0 && showAdopterNames && (
-              <span className="text-xs text-green-700 font-semibold bg-green-100 px-2 py-1 rounded">
-                Adopted by {adopters.map((a) => a.name).join(", ")}
-              </span>
+            ) : (
+              <span className="invisible text-xs px-2 py-1">Contact the Creator</span>
             )}
           </div>
-          <Link
-            href={`/projects/${project.id}`}
-            className="text-emerald-600 underline text-xs font-semibold hover:text-accent transition-colors"
-          >
-            View Project
-          </Link>
+          {/* View Project (always reserve space) */}
+          <div className="flex-1 flex justify-center">
+            <Link
+              href={`/projects/${project.id}`}
+              className="text-emerald-600 underline text-xs font-semibold hover:text-accent transition-colors"
+            >
+              View Project
+            </Link>
+          </div>
         </div>
       </div>
     </motion.div>

@@ -5,13 +5,13 @@ import { supabase } from "@/lib/supabaseClient";
 import { ProjectCard } from "@/components/ProjectCard";
 import Navbar from "@/components/Navbar";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAuth } from "@/components/AuthContext";
 
 export default function AdoptedProjectsPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [adopted, setAdopted] = useState<
-    { id: string; title: string; category: string; status: string }[]
-  >([]);
+  const [adopted, setAdopted] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creatorMap, setCreatorMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchAdopted = async () => {
@@ -38,8 +38,25 @@ export default function AdoptedProjectsPage() {
           )
           .in("id", projectIds);
         setAdopted(adoptedProjects || []);
+        // Fetch creator unique_ids
+        const creatorIds = Array.from(new Set((adoptedProjects || []).map((p: any) => p.creator_id).filter(Boolean)));
+        let creatorProfiles: { id: string; unique_id: string }[] = [];
+        if (creatorIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from("profiles")
+            .select("id, unique_id")
+            .in("id", creatorIds);
+          creatorProfiles = profiles || [];
+        }
+        const creatorMap: Record<string, string> = {};
+        for (const p of adoptedProjects || []) {
+          const creator = creatorProfiles.find((a) => a.id === p.creator_id);
+          if (creator) creatorMap[p.id] = creator.unique_id;
+        }
+        setCreatorMap(creatorMap);
       } else {
         setAdopted([]);
+        setCreatorMap({});
       }
       setLoading(false);
     };
@@ -89,6 +106,7 @@ export default function AdoptedProjectsPage() {
                   project={p}
                   adopted={true}
                   showAdopterNames={true}
+                  contactCreatorUrl={creatorMap[p.id] ? `/chat/${creatorMap[p.id]}` : undefined}
                 />
               ))}
             </div>

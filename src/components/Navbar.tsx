@@ -59,6 +59,12 @@ export default function Navbar() {
           Projects
         </Link>
         <Link
+          href="/messages"
+          className="text-white font-medium text-base hover:underline"
+        >
+          Messages
+        </Link>
+        <Link
           href="/projects/submit"
           className="text-white font-medium text-base hover:underline"
         >

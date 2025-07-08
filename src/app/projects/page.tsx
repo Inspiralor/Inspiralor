@@ -219,9 +219,11 @@ export default function ProjectsPage() {
                 <div>
                   {projects.map((p, i) => {
                     const author = authorMap[p.id];
-                    const adopters = adoptersMap[p.id];
+                    const adopters = adoptersMap[p.id] || [];
+                    const adopted = adopters.length > 0;
+                    const hasAdopted = user ? adopters.some(a => a.id === user.id) : false;
                     const contactCreatorUrl =
-                      author && user && user.id !== p.creator_id
+                      author && user && user.id !== p.creator_id && hasAdopted
                         ? `/chat/${author.unique_id}`
                         : undefined;
                     return (
@@ -230,6 +232,7 @@ export default function ProjectsPage() {
                           project={p}
                           delay={0.05 * i}
                           adopters={adopters}
+                          adopted={adopted}
                           contactCreatorUrl={contactCreatorUrl}
                         />
                         {i !== projects.length - 1 && (

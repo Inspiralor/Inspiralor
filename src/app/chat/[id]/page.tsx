@@ -57,6 +57,19 @@ export default function DirectChatPage() {
           }
         }
       );
+      // Fetch chat history from Supabase
+      (async () => {
+        const { data, error } = await supabase
+          .from("messages")
+          .select("sender_name, text, timestamp")
+          .eq("room", roomName)
+          .order("timestamp", { ascending: true });
+        if (data) {
+          setMessages(
+            data.map((m: any) => ({ user: m.sender_name, text: m.text }))
+          );
+        }
+      })();
       return () => {
         socket?.emit("leave", roomName);
         socket?.off("chat message");
@@ -81,11 +94,22 @@ export default function DirectChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = (e: React.FormEvent) => {
+  const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || !user) return;
+    if (!input.trim() || !user || !room) return;
     const msg = { user: userName || "You", text: input };
-    socket?.emit("chat message", msg);
+    // Save to Supabase
+    await supabase.from("messages").insert([
+      {
+        room,
+        sender_id: user.id,
+        sender_name: userName || "You",
+        text: input,
+        // timestamp will default to now()
+      },
+    ]);
+    // Emit via socket.io
+    socket?.emit("chat message", { ...msg, room });
     setMessages((prev) => [...prev, msg]);
     setInput("");
   };
