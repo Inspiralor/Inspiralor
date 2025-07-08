@@ -38,20 +38,20 @@ export default function AdoptedProjectsPage() {
           )
           .in("id", projectIds);
         setAdopted(adoptedProjects || []);
-        // Fetch creator unique_ids
+        // Fetch creator full UUIDs
         const creatorIds = Array.from(new Set((adoptedProjects || []).map((p: any) => p.creator_id).filter(Boolean)));
         let creatorProfiles: { id: string; unique_id: string }[] = [];
         if (creatorIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
-            .select("id, unique_id")
+            .select("id")
             .in("id", creatorIds);
           creatorProfiles = profiles || [];
         }
         const creatorMap: Record<string, string> = {};
         for (const p of adoptedProjects || []) {
           const creator = creatorProfiles.find((a) => a.id === p.creator_id);
-          if (creator) creatorMap[p.id] = creator.unique_id;
+          if (creator) creatorMap[p.id] = creator.id;
         }
         setCreatorMap(creatorMap);
       } else {

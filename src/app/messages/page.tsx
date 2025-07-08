@@ -10,35 +10,63 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const [lastReads, setLastReads] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
-    // Fetch all messages where user is sender or recipient
     const fetchConversations = async () => {
-      // Get all rooms the user is part of
-      const { data: messages } = await supabase
-        .from("messages")
-        .select("room, sender_id, sender_name, text, timestamp")
-        .or(`sender_id.eq.${user.id},room.ilike.%${user.id}%`)
-        .order("timestamp", { ascending: false });
-      if (!messages) {
+      // Get all rooms where the user is a participant
+      const { data: rooms } = await supabase
+        .from("rooms")
+        .select("id, user1_id, user2_id")
+        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`);
+      if (!rooms) {
         setConversations([]);
         setLoading(false);
         return;
       }
-      // Group by room, keep only latest message per room
-      const roomMap: Record<string, any> = {};
-      for (const msg of messages) {
-        if (!roomMap[msg.room]) {
-          roomMap[msg.room] = msg;
+      // For each room, fetch the latest message
+      const roomIds = rooms.map((r: any) => r.id);
+      let latestMessages: any[] = [];
+      if (roomIds.length > 0) {
+        const { data: messages } = await supabase
+          .from("messages")
+          .select("room_id, sender_id, sender_name, text, timestamp")
+          .in("room_id", roomIds)
+          .order("timestamp", { ascending: false });
+        // For each room, keep only the latest message
+        const msgMap: Record<string, any> = {};
+        for (const msg of messages || []) {
+          if (!msgMap[msg.room_id]) {
+            msgMap[msg.room_id] = msg;
+          }
         }
+        latestMessages = Object.values(msgMap);
       }
+      // Merge room info with latest message
+      const conversations = rooms.map((room: any) => {
+        const msg = latestMessages.find((m: any) => m.room_id === room.id);
+        return {
+          room_id: room.id,
+          user1_id: room.user1_id,
+          user2_id: room.user2_id,
+          ...msg,
+        };
+      }).filter((c: any) => c.text); // Only show rooms with messages
       // Sort by latest message timestamp
-      const sorted = Object.values(roomMap).sort(
-        (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-      setConversations(sorted);
+      conversations.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setConversations(conversations);
       setLoading(false);
+      // Fetch last read timestamps for all rooms
+      const { data: reads } = await supabase
+        .from("message_reads")
+        .select("room_id, last_read_timestamp")
+        .eq("user_id", user.id);
+      const lastReads: Record<string, string> = {};
+      (reads || []).forEach((r: any) => {
+        lastReads[r.room_id] = r.last_read_timestamp;
+      });
+      setLastReads(lastReads);
     };
     fetchConversations();
   }, [user]);
@@ -64,13 +92,12 @@ export default function MessagesPage() {
           ) : (
             <ul className="divide-y">
               {conversations.map((conv, i) => {
-                // Figure out the other user's name from the room and sender
-                const ids = conv.room.split("-");
-                const otherId = ids.find((id: string) => id !== user.id);
+                // The other user is the one that is not the current user
+                const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id;
                 const isOwnMsg = conv.sender_id === user.id;
                 return (
                   <li
-                    key={conv.room}
+                    key={conv.room_id}
                     className="flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-gray-50 transition"
                     onClick={() => router.push(`/chat/${otherId}`)}
                   >
@@ -87,9 +114,11 @@ export default function MessagesPage() {
                         {conv.text}
                       </div>
                     </div>
-                    {/* Placeholder for notification badge */}
+                    {/* Notification badge for unread messages */}
                     <div className="ml-2">
-                      <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                      {conv.timestamp && (!lastReads[conv.room_id] || new Date(conv.timestamp) > new Date(lastReads[conv.room_id])) ? (
+                        <span className="inline-block w-3 h-3 rounded-full bg-emerald-400" title="New message"></span>
+                      ) : null}
                     </div>
                   </li>
                 );

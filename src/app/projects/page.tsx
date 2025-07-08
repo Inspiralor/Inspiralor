@@ -87,7 +87,7 @@ export default function ProjectsPage() {
     Record<string, { id: string; name: string }[]>
   >({});
   const [authorMap, setAuthorMap] = useState<
-    Record<string, { unique_id: string }>
+    Record<string, { id: string }>
   >({});
 
   useEffect(() => {
@@ -144,10 +144,10 @@ export default function ProjectsPage() {
           .in("id", creatorIds);
         authorProfiles = profiles || [];
       }
-      const authorMap: Record<string, { unique_id: string }> = {};
+      const authorMap: Record<string, { id: string }> = {};
       for (const p of projects) {
         const author = authorProfiles.find((a) => a.id === p.creator_id);
-        if (author) authorMap[p.id] = { unique_id: author.unique_id };
+        if (author) authorMap[p.id] = { id: author.id };
       }
       setAuthorMap(authorMap);
     };
@@ -224,7 +224,7 @@ export default function ProjectsPage() {
                     const hasAdopted = user ? adopters.some(a => a.id === user.id) : false;
                     const contactCreatorUrl =
                       author && user && user.id !== p.creator_id && hasAdopted
-                        ? `/chat/${author.unique_id}`
+                        ? `/chat/${author.id}`
                         : undefined;
                     return (
                       <div key={p.id}>
