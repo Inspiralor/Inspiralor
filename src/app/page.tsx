@@ -40,7 +40,7 @@ function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
 export default function Home() {
   const [totalProjects, setTotalProjects] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [email, setEmail] = useState("");
+  const [adoptedCount, setAdoptedCount] = useState<number | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const section1Ref = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState(1);
@@ -48,6 +48,7 @@ export default function Home() {
     threshold: 0.5,
   });
   const [latestProjects, setLatestProjects] = useState<any[]>([]);
+  const [subscribeEmail, setSubscribeEmail] = useState("");
 
   useEffect(() => {
     // Get current user
@@ -77,6 +78,16 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    const fetchAdoptedCount = async () => {
+      const { count } = await supabase
+        .from('adoptions')
+        .select('project_id', { count: 'exact', head: true });
+      setAdoptedCount(count || 0);
+    };
+    fetchAdoptedCount();
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       if (!section1Ref.current) return;
       const rect = section1Ref.current.getBoundingClientRect();
@@ -100,10 +111,25 @@ export default function Home() {
     fetchLatestProjects();
   }, []);
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email)
-      window.location.href = `/signup?email=${encodeURIComponent(email)}`;
+    if (!subscribeEmail) return;
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: subscribeEmail }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert('Subscribed successfully!');
+        setSubscribeEmail("");
+      } else {
+        alert(data.error || 'Subscription failed.');
+      }
+    } catch (err) {
+      alert('Network error. Please try again.');
+    }
   };
 
   return (
@@ -152,20 +178,21 @@ export default function Home() {
           {!user && (
             <form
               className="flex gap-2 w-full max-w-md"
-              onSubmit={handleSignup}
+              onSubmit={handleSubscribe}
             >
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
+                value={subscribeEmail}
+                onChange={(e) => setSubscribeEmail(e.target.value)}
+                placeholder="Enter your email to subscribe"
                 className="rounded px-4 py-2 flex-1 text-white placeholder-white bg-black/40 border border-white"
+                required
               />
               <button
                 type="submit"
                 className="bg-emerald-400 hover:bg-emerald-500 transition-colors text-white px-4 py-1 rounded text-sm font-semibold shadow-md"
               >
-                Sign up
+                Subscribe
               </button>
             </form>
           )}
@@ -196,7 +223,7 @@ export default function Home() {
                 <div className="font-semibold">Active Collaborators</div>
               </div>
               <div>
-                <div className="text-4xl font-bold">0</div>
+                <div className="text-4xl font-bold">{adoptedCount !== null ? adoptedCount : '...'}</div>
                 <div className="font-semibold">Total Projects Adopted</div>
               </div>
               <div>

@@ -46,29 +46,19 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 w-full z-50 bg-black transition-colors px-4 md:px-16 py-3 flex items-center justify-between">
       {/* Left: Nav Items */}
       <div className="flex items-center gap-5 min-w-[220px]">
-        <Link
-          href="/about"
-          className="text-white font-medium text-base hover:underline"
-        >
-          About Us
-        </Link>
+        {!user && (
+          <Link
+            href="/about"
+            className="text-white font-medium text-base hover:underline"
+          >
+            About Us
+          </Link>
+        )}
         <Link
           href="/projects"
           className="text-white font-medium text-base hover:underline"
         >
           Projects
-        </Link>
-        <Link
-          href="/messages"
-          className="text-white font-medium text-base hover:underline"
-        >
-          Messages
-        </Link>
-        <Link
-          href="/projects/submit"
-          className="text-white font-medium text-base hover:underline"
-        >
-          Submit
         </Link>
         {user && (
           <>
@@ -85,6 +75,20 @@ export default function Navbar() {
               Adopted Projects
             </Link>
           </>
+        )}
+        <Link
+          href="/projects/submit"
+          className="text-white font-medium text-base hover:underline"
+        >
+          Submit
+        </Link>
+        {user && (
+          <Link
+            href="/messages"
+            className="text-white font-medium text-base hover:underline"
+          >
+            Messages
+          </Link>
         )}
       </div>
       {/* Center: Title */}
@@ -116,12 +120,20 @@ export default function Navbar() {
             </Link>
           </>
         ) : (
-          <button
-            onClick={() => router.push("/login")}
-            className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600"
-          >
-            Get Started
-          </button>
+          <>
+            <button
+              onClick={() => router.push("/login")}
+              className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600"
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => router.push("/signup")}
+              className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-emerald-500 via-green-600 to-lime-500 hover:from-emerald-600 hover:to-lime-600 ml-2"
+            >
+              Get Started
+            </button>
+          </>
         )}
       </div>
     </nav>

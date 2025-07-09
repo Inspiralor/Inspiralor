@@ -46,6 +46,7 @@ export default function Landing() {
   const [search, setSearch] = useState("");
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [adoptedCount, setAdoptedCount] = useState<number | null>(null);
 
   // Add at the top of the Landing component, after useState declarations:
   const row1Ref = useRef<HTMLDivElement>(null);
@@ -184,6 +185,17 @@ export default function Landing() {
     fetchCreators();
   }, []);
 
+  // Fetch adopted projects count
+  useEffect(() => {
+    const fetchAdoptedCount = async () => {
+      const { count } = await supabase
+        .from('adoptions')
+        .select('project_id', { count: 'exact', head: true });
+      setAdoptedCount(count || 0);
+    };
+    fetchAdoptedCount();
+  }, []);
+
   // Favourite toggle
   const toggleFavourite = async (projectId: string) => {
     if (!user) return;
@@ -218,7 +230,7 @@ export default function Landing() {
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 text-center">
           Welcome Back{profile?.name ? `, ${profile.name}` : ""}!
         </h1>
-        <div className="w-full max-w-md relative">
+        <div className="w-full max-w-md relative mb-4">
           <input
             type="text"
             className="w-full pl-4 pr-12 py-2 rounded-lg bg-gray-800 text-base text-white placeholder-gray-400 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-lg"

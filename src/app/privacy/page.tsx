@@ -60,10 +60,10 @@ export default function PrivacyPage() {
             If you have any questions or concerns about this Privacy Policy,
             please contact us at{" "}
             <a
-              href="mailto:support@Inspiralor.com"
+              href="mailto:hokwai24@gmail.com"
               className="text-emerald-600 underline"
             >
-              support@Inspiralor.com
+              hokwai24@gmail.com
             </a>
             .
           </p>
