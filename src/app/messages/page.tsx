@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import Navbar from "@/components/Navbar";
+import { UserAvatar } from "@/components/UserAvatar";
 
 export default function MessagesPage() {
   const { user } = useAuth();
@@ -11,6 +12,7 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [lastReads, setLastReads] = useState<Record<string, string>>({});
+  const [profileImages, setProfileImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!user) return;
@@ -67,6 +69,21 @@ export default function MessagesPage() {
         lastReads[r.room_id] = r.last_read_timestamp;
       });
       setLastReads(lastReads);
+      // Fetch profile images for other users
+      const otherUserIds = conversations.map((conv: any) =>
+        conv.user1_id === user.id ? conv.user2_id : conv.user1_id
+      );
+      if (otherUserIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, profile_image")
+          .in("id", otherUserIds);
+        const imgMap: Record<string, string> = {};
+        (profiles || []).forEach((p: any) => {
+          imgMap[p.id] = p.profile_image || "/images/Me/me.jpeg";
+        });
+        setProfileImages(imgMap);
+      }
     };
     fetchConversations();
   }, [user]);
@@ -101,6 +118,12 @@ export default function MessagesPage() {
                     className="flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-gray-50 transition"
                     onClick={() => router.push(`/chat/${otherId}`)}
                   >
+                    {/* Always show the other user's avatar */}
+                    {profileImages[otherId] ? (
+                      <UserAvatar src={profileImages[otherId]} size={40} />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-base truncate">

@@ -141,15 +141,20 @@ export function ProjectCard({
         )}
       </div>
       {/* Info Section */}
-      <div className="flex-1 flex flex-col justify-between p-2">
+      <div className="flex-1 flex flex-col justify-between px-4 pt-4 pb-1">
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <Link
-              href={`/projects/${project.id}`}
-              className="text-lg font-bold text-black hover:text-accent hover:underline transition-colors line-clamp-1"
-            >
-              {project.title}
-            </Link>
+          <div className="flex items-center mb-2 gap-2">
+            <div className="flex-1 min-w-0">
+              <Link
+                href={`/projects/${project.id}`}
+                className="text-lg font-bold text-black hover:text-accent hover:underline transition-colors block truncate"
+                style={{ wordBreak: 'break-word' }}
+                title={project.title}
+              >
+                {project.title.split(' ').slice(0, 6).join(' ')}
+                {project.title.split(' ').length > 6 ? '...' : ''}
+              </Link>
+            </div>
             {showDelete && onDelete && (
               <Button
                 variant="danger"

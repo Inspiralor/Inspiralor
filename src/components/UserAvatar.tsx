@@ -15,13 +15,18 @@ export function UserAvatar({
   className = "",
 }: UserAvatarProps) {
   return (
-    <Image
-      src={src || "/images/Me/me.jpeg"}
-      alt={alt}
-      width={size}
-      height={size}
-      className={`rounded-full object-cover border-2 border-white shadow-md bg-white hover:scale-105 transition-transform ${className}`}
-      priority
-    />
+    <div
+      style={{ width: size, height: size }}
+      className={`rounded-full overflow-hidden border-2 border-white shadow-md bg-white flex items-center justify-center ${className}`}
+    >
+      <Image
+        src={src || "/images/Me/me.jpeg"}
+        alt={alt}
+        width={size}
+        height={size}
+        className="object-cover w-full h-full"
+        priority
+      />
+    </div>
   );
 }

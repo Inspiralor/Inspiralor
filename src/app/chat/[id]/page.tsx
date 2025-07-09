@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/AuthContext";
+import { UserAvatar } from "@/components/UserAvatar";
 
 let socket: Socket | null = null;
 
@@ -27,11 +28,11 @@ export default function DirectChatPage() {
     if (otherUserId) {
       supabase
         .from("profiles")
-        .select("id, name")
+        .select("id, name, profile_image")
         .eq("id", otherUserId)
         .single()
         .then(({ data }) => {
-          if (data) setOtherUser({ id: data.id, name: data.name || "User" });
+          if (data) setOtherUser({ id: data.id, name: data.name || "User", profile_image: data.profile_image || "/images/Me/me.jpeg" });
         });
     }
   }, [otherUserId]);
@@ -152,8 +153,9 @@ export default function DirectChatPage() {
       <Navbar />
       <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background via-surface to-primary/30 pt-24 px-4">
         <div className="w-full max-w-xl bg-glass rounded-xl shadow-lg border border-border p-6 flex flex-col h-[70vh]">
-          <h2 className="text-2xl font-bold mb-2 text-primary">
-            Chat with {otherUserName || "User"}
+          <h2 className="text-2xl font-bold mb-2 text-primary flex items-center gap-3">
+            <UserAvatar src={otherUser?.profile_image} size={40} />
+            Chat with {otherUser?.name || otherUserName || "User"}
           </h2>
           <div className="text-xs text-gray-500 mb-4">
             Room: {roomId}
@@ -169,18 +171,27 @@ export default function DirectChatPage() {
                   msg.user === userName ? "justify-end" : "justify-start"
                 }`}
               >
-                <span
-                  className={`inline-block px-4 py-2 rounded-lg max-w-[70%] break-words shadow ${
-                    msg.user === userName
-                      ? "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white"
-                      : "bg-white text-black"
-                  }`}
-                >
-                  <span className="block text-xs font-bold mb-1">
+                {/* Show avatar for received messages */}
+                {msg.user !== userName && (
+                  <div className="mr-2 flex-shrink-0">
+                    <UserAvatar src={otherUser?.profile_image} size={32} />
+                  </div>
+                )}
+                <div className="flex flex-col max-w-[70%]">
+                  {/* Sender name above the message, small font */}
+                  <span className="block text-xs font-bold mb-1 text-gray-500">
                     {msg.user === userName ? "You" : msg.user}
                   </span>
-                  {msg.text}
-                </span>
+                  <span
+                    className={`inline-block px-4 py-2 rounded-lg break-words shadow ${
+                      msg.user === userName
+                        ? "bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white"
+                        : "bg-white text-black"
+                    }`}
+                  >
+                    {msg.text}
+                  </span>
+                </div>
               </div>
             ))}
             <div ref={messagesEndRef} />
