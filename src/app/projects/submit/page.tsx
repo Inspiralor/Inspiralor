@@ -50,11 +50,19 @@ export default function SubmitProjectPage({
   const [user, setUser] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imageSrcs, setImageSrcs] = useState<string[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [docFiles, setDocFiles] = useState<File[]>([]);
+  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropImageIdx, setCropImageIdx] = useState<number | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [croppedImage, setCroppedImage] = useState<string | null>(null);
+  const [cardImage, setCardImage] = useState<{
+    src: string;
+    file: File;
+  } | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -91,25 +99,60 @@ export default function SubmitProjectPage({
     }
   }, [isEdit, id]);
 
+  // Update image upload to allow multiple files at once
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.addEventListener("load", () => {
-        setImageSrc(reader.result as string);
+      const files = Array.from(e.target.files);
+      if (imageFiles.length + files.length > 100) {
+        setErrorMsg("You can upload up to 100 images.");
+        return;
+      }
+      setErrorMsg("");
+      const readers = files.map((file) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
       });
-      reader.readAsDataURL(file);
+      const srcs = await Promise.all(readers);
+      setImageFiles((prev) => [...prev, ...files]);
+      setImageSrcs((prev) => [...prev, ...srcs]);
+      e.target.value = ""; // reset input
     }
+  };
+
+  const onDocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      if (docFiles.length + files.length > 5) {
+        setErrorMsg("You can upload up to 5 documents only.");
+        return;
+      }
+      setErrorMsg("");
+      setDocFiles((prev) => [...prev, ...files]);
+      e.target.value = "";
+    }
+  };
+
+  const openCropModal = (idx: number) => {
+    setCropImageIdx(idx);
+    setCropModalOpen(true);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
   };
 
   const onCropComplete = (_: Area, croppedAreaPixels: Area) => {
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
-  const showCroppedImage = async () => {
-    if (!imageSrc || !croppedAreaPixels) return;
-    const cropped = await getCroppedImg(imageSrc, croppedAreaPixels);
-    setCroppedImage(cropped as string);
+  const handleCropSave = async () => {
+    if (cropImageIdx === null || !croppedAreaPixels) return;
+    const src = imageSrcs[cropImageIdx];
+    const file = imageFiles[cropImageIdx];
+    const cropped = await getCroppedImg(src, croppedAreaPixels);
+    setCardImage({ src: cropped as string, file });
+    setCropModalOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -131,14 +174,13 @@ export default function SubmitProjectPage({
       .map((l) => l.trim())
       .filter(Boolean);
     const uploadedFiles: UploadedFile[] = [];
-    if (croppedImage) {
-      // Convert base64 to Blob
-      const res = await fetch(croppedImage);
-      const blob = await res.blob();
-      const filePath = `${user.id}/${Date.now()}_cropped.png`;
+    // Upload images
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i];
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("project-files")
-        .upload(filePath, blob);
+        .upload(filePath, file);
       if (uploadError) {
         setError(`File upload failed: ${uploadError.message}`);
         setLoading(false);
@@ -148,11 +190,34 @@ export default function SubmitProjectPage({
         .from("project-files")
         .getPublicUrl(filePath);
       uploadedFiles.push({
-        name: "cropped.png",
+        name: file.name,
         url: urlData.publicUrl,
         path: filePath,
-        type: "image/png",
-        size: blob.size,
+        type: file.type,
+        size: file.size,
+      });
+    }
+    // Upload documents
+    for (let i = 0; i < docFiles.length; i++) {
+      const file = docFiles[i];
+      const filePath = `${user.id}/${Date.now()}_${file.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from("project-files")
+        .upload(filePath, file);
+      if (uploadError) {
+        setError(`File upload failed: ${uploadError.message}`);
+        setLoading(false);
+        return;
+      }
+      const { data: urlData } = supabase.storage
+        .from("project-files")
+        .getPublicUrl(filePath);
+      uploadedFiles.push({
+        name: file.name,
+        url: urlData.publicUrl,
+        path: filePath,
+        type: file.type,
+        size: file.size,
       });
     }
     if (isEdit && id) {
@@ -168,7 +233,7 @@ export default function SubmitProjectPage({
           tags: tagArr,
           status,
           links: linkArr,
-          ...(uploadedFiles.length > 0 ? { files: uploadedFiles } : {}),
+          files: uploadedFiles,
         })
         .eq("id", id);
       setLoading(false);
@@ -218,65 +283,94 @@ export default function SubmitProjectPage({
       <Navbar />
       <main className="min-h-screen flex flex-row bg-black">
         {/* Left: Cropper */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-black min-h-screen p-8">
-          {!imageSrc && (
-            <label className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-              <span className="text-white mb-4">Upload Project Image</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={onFileChange}
-                className="hidden"
-              />
-              <div className="w-72 h-56 border-2 border-dashed border-gray-500 flex items-center justify-center">
-                <span className="text-gray-500">Click to upload</span>
-              </div>
-            </label>
-          )}
-          {imageSrc && !croppedImage && (
-            <div className="relative w-72 h-56">
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={288 / 224}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-                cropShape="rect"
-                showGrid={true}
-              />
-              <button
-                type="button"
-                onClick={showCroppedImage}
-                className="absolute bottom-2 right-2 bg-primary text-white px-4 py-2 rounded shadow"
-              >
-                Crop
-              </button>
+        <div className="flex-1 flex flex-col items-center justify-center bg-black min-h-screen p-8 overflow-y-auto">
+          <label className="flex flex-col items-center justify-center w-full cursor-pointer mb-4">
+            <span className="text-white mb-2">
+              Upload Project Images (max 100, one by one)
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={onFileChange}
+              className="hidden"
+            />
+            <div className="w-72 h-20 border-2 border-dashed border-gray-500 flex items-center justify-center">
+              <span className="text-gray-500">Click to upload</span>
             </div>
+          </label>
+          {errorMsg && (
+            <div className="text-red-500 font-semibold mb-2">{errorMsg}</div>
           )}
-          {croppedImage && (
-            <div className="flex flex-col items-center">
-              <img
-                src={croppedImage}
-                alt="Cropped Preview"
-                className="w-72 h-56 object-cover rounded shadow"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setImageSrc(null);
-                  setCroppedImage(null);
-                }}
-                className="mt-4 text-white underline"
-              >
-                Change Image
-              </button>
+          {imageSrcs.length > 0 && (
+            <>
+              <div className="text-yellow-300 text-sm mb-2 text-center">
+                Reminder: Click an image to crop and set as your project card
+                display image.
+              </div>
+              <div className="flex flex-col gap-2 w-full items-center">
+                {Array.from({ length: Math.ceil(imageSrcs.length / 10) }).map(
+                  (_, rowIdx) => (
+                    <div key={rowIdx} className="flex gap-2 mb-2">
+                      {imageSrcs
+                        .slice(rowIdx * 10, rowIdx * 10 + 10)
+                        .map((src, idx) => (
+                          <img
+                            key={rowIdx * 10 + idx}
+                            src={src}
+                            alt={`Upload ${rowIdx * 10 + idx + 1}`}
+                            className={`w-16 h-16 object-cover rounded border-2 cursor-pointer ${
+                              cardImage?.file === imageFiles[rowIdx * 10 + idx]
+                                ? "border-primary"
+                                : "border-gray-400"
+                            }`}
+                            onClick={() => openCropModal(rowIdx * 10 + idx)}
+                            title="Click to crop and set as card image"
+                          />
+                        ))}
+                    </div>
+                  )
+                )}
+              </div>
+            </>
+          )}
+          {/* Cropper Modal */}
+          {cropModalOpen && cropImageIdx !== null && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80">
+              <div className="bg-white rounded-lg shadow-lg p-6 relative flex flex-col items-center">
+                <div className="w-[400px] h-[300px] relative">
+                  <Cropper
+                    image={imageSrcs[cropImageIdx]}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={288 / 224}
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={onCropComplete}
+                    cropShape="rect"
+                    showGrid={true}
+                  />
+                </div>
+                <div className="flex gap-4 mt-4">
+                  <button
+                    onClick={handleCropSave}
+                    className="bg-primary text-black px-4 py-2 rounded shadow"
+                  >
+                    Crop & Set as Card Image
+                  </button>
+                  <button
+                    onClick={() => setCropModalOpen(false)}
+                    className="bg-gray-300 text-black px-4 py-2 rounded shadow"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </div>
         {/* Right: Form */}
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-surface to-primary/30 py-10 px-4">
+        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-surface to-primary/30 py-10 px-4 pt-32 overflow-y-auto">
           <motion.form
             onSubmit={handleSubmit}
             className="w-full max-w-xl rounded-xl bg-glass shadow-glass p-10 flex flex-col gap-8 border border-white backdrop-blur-md"
@@ -354,6 +448,39 @@ export default function SubmitProjectPage({
                 onChange={(e) => setLinks(e.target.value)}
                 className="border border-white bg-surface/60 rounded-xl px-6 py-4 text-white placeholder:text-muted text-lg"
               />
+              <label className="flex flex-col items-center justify-center w-full cursor-pointer mb-2">
+                <span className="text-white mb-2">
+                  Upload Documents (max 5, PDF/DOCX/...)
+                </span>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+                  multiple
+                  onChange={onDocChange}
+                  className="hidden"
+                />
+                <div className="w-full h-12 border-2 border-dashed border-gray-500 flex items-center justify-center rounded">
+                  <span className="text-gray-500">
+                    Click to upload documents
+                  </span>
+                </div>
+              </label>
+              {docFiles.length > 0 && (
+                <ul className="flex flex-col gap-1 mt-2 list-disc list-inside">
+                  {docFiles.map((file, idx) => (
+                    <li key={idx}>
+                      <a
+                        href={URL.createObjectURL(file)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent underline text-sm font-semibold hover:text-white transition-colors"
+                      >
+                        {file.name} ({file.type || "Unknown type"})
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
             {error && (
               <div className="text-red-500 font-semibold text-sm">{error}</div>

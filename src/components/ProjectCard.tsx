@@ -27,9 +27,7 @@ interface ProjectCardProps {
   showDelete?: boolean;
   showAuthor?: boolean;
   adopted?: boolean;
-  adopters?: { id: string; name: string }[];
   contactCreatorUrl?: string;
-  showAdopterNames?: boolean;
 }
 
 export function ProjectCard({
@@ -40,19 +38,36 @@ export function ProjectCard({
   showDelete = false,
   showAuthor = true,
   adopted = false,
-  adopters,
   contactCreatorUrl,
-  showAdopterNames,
 }: ProjectCardProps) {
-  const imageFile = project.files?.find((f) =>
-    /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
-  );
+  const imageFiles =
+    project.files?.filter((f) =>
+      /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name)
+    ) || [];
   const { user } = useAuth();
   const [favourites, setFavourites] = useState<string[]>([]);
   const [author, setAuthor] = useState<{
     name: string;
     unique_id: string;
   } | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImageIdx, setModalImageIdx] = useState<number | null>(null);
+  const [gridModalOpen, setGridModalOpen] = useState(false);
+
+  const openImageModal = (idx: number) => {
+    setModalImageIdx(idx);
+    setModalOpen(true);
+  };
+  const closeImageModal = () => {
+    setModalOpen(false);
+    setModalImageIdx(null);
+  };
+  const openGridModal = () => {
+    setGridModalOpen(true);
+  };
+  const closeGridModal = () => {
+    setGridModalOpen(false);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -125,10 +140,10 @@ export function ProjectCard({
       )}
       {/* Image Section */}
       <div className="w-72 min-w-[18rem] h-56 flex-shrink-0 rounded-l-xl overflow-hidden bg-gray-100 border-r border-gray-200">
-        {imageFile ? (
+        {imageFiles.length > 0 ? (
           <Image
-            src={imageFile.url}
-            alt={imageFile.name}
+            src={imageFiles[0].url}
+            alt={imageFiles[0].name}
             width={288}
             height={224}
             className="object-cover w-full h-full"
@@ -148,11 +163,11 @@ export function ProjectCard({
               <Link
                 href={`/projects/${project.id}`}
                 className="text-lg font-bold text-black hover:text-accent hover:underline transition-colors block truncate"
-                style={{ wordBreak: 'break-word' }}
+                style={{ wordBreak: "break-word" }}
                 title={project.title}
               >
-                {project.title.split(' ').slice(0, 6).join(' ')}
-                {project.title.split(' ').length > 6 ? '...' : ''}
+                {project.title.split(" ").slice(0, 6).join(" ")}
+                {project.title.split(" ").length > 6 ? "..." : ""}
               </Link>
             </div>
             {showDelete && onDelete && (
@@ -225,7 +240,9 @@ export function ProjectCard({
                 Contact the Creator
               </a>
             ) : (
-              <span className="invisible text-xs px-2 py-1">Contact the Creator</span>
+              <span className="invisible text-xs px-2 py-1">
+                Contact the Creator
+              </span>
             )}
           </div>
           {/* View Project (always reserve space) */}
@@ -239,6 +256,49 @@ export function ProjectCard({
           </div>
         </div>
       </div>
+      {/* Full Image Modal */}
+      {modalOpen && modalImageIdx !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+          onClick={closeImageModal}
+        >
+          <img
+            src={imageFiles[modalImageIdx].url}
+            alt={imageFiles[modalImageIdx].name}
+            className="max-w-[90vw] max-h-[90vh] rounded shadow-lg border-4 border-white"
+            style={{ zIndex: 60 }}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+      {/* Grid Modal for all images */}
+      {gridModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80"
+          onClick={closeGridModal}
+        >
+          <div
+            className="bg-white rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="grid grid-cols-5 gap-4">
+              {imageFiles.map((img, idx) => (
+                <img
+                  key={idx}
+                  src={img.url}
+                  alt={img.name}
+                  className="w-[124px] h-[124px] object-cover rounded cursor-pointer border border-gray-300"
+                  onClick={() => {
+                    setModalImageIdx(idx);
+                    setModalOpen(true);
+                    setGridModalOpen(false);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
