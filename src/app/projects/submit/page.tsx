@@ -146,12 +146,30 @@ export default function SubmitProjectPage({
     setCroppedAreaPixels(croppedAreaPixels);
   };
 
+  // When cropping is saved, update the thumbnail list so the cropped image is first
   const handleCropSave = async () => {
     if (cropImageIdx === null || !croppedAreaPixels) return;
     const src = imageSrcs[cropImageIdx];
     const file = imageFiles[cropImageIdx];
     const cropped = await getCroppedImg(src, croppedAreaPixels);
-    setCardImage({ src: cropped as string, file });
+    // Convert base64 to Blob and create a new File for upload
+    const res = await fetch(cropped as string);
+    const blob = await res.blob();
+    const croppedFile = new File(
+      [blob],
+      file.name.replace(/\.[^.]+$/, "") + "_cropped.png",
+      { type: "image/png" }
+    );
+    // Move the cropped image to the front of the list
+    setCardImage({ src: cropped as string, file: croppedFile });
+    setImageSrcs((prev) => [
+      cropped as string,
+      ...prev.filter((_, i) => i !== cropImageIdx),
+    ]);
+    setImageFiles((prev) => [
+      croppedFile,
+      ...prev.filter((_, i) => i !== cropImageIdx),
+    ]);
     setCropModalOpen(false);
   };
 
@@ -314,20 +332,24 @@ export default function SubmitProjectPage({
                     <div key={rowIdx} className="flex gap-2 mb-2">
                       {imageSrcs
                         .slice(rowIdx * 10, rowIdx * 10 + 10)
-                        .map((src, idx) => (
-                          <img
-                            key={rowIdx * 10 + idx}
-                            src={src}
-                            alt={`Upload ${rowIdx * 10 + idx + 1}`}
-                            className={`w-16 h-16 object-cover rounded border-2 cursor-pointer ${
-                              cardImage?.file === imageFiles[rowIdx * 10 + idx]
-                                ? "border-primary"
-                                : "border-gray-400"
-                            }`}
-                            onClick={() => openCropModal(rowIdx * 10 + idx)}
-                            title="Click to crop and set as card image"
-                          />
-                        ))}
+                        .map((src, idx) => {
+                          const globalIdx = rowIdx * 10 + idx;
+                          const isCard = globalIdx === 0;
+                          return (
+                            <img
+                              key={globalIdx}
+                              src={src}
+                              alt={`Upload ${globalIdx + 1}`}
+                              className={`w-16 h-16 object-cover rounded border-2 cursor-pointer ${
+                                isCard
+                                  ? "border-8 border-white shadow-lg"
+                                  : "border-gray-400"
+                              }`}
+                              onClick={() => openCropModal(globalIdx)}
+                              title="Click to crop and set as card image"
+                            />
+                          );
+                        })}
                     </div>
                   )
                 )}

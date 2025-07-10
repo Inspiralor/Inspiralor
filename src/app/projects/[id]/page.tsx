@@ -184,67 +184,78 @@ export default function ProjectDetailPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen bg-gradient-to-br from-background via-surface to-primary/30 flex items-center justify-center py-10 px-4 pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          className="w-full max-w-2xl rounded-xl bg-glass shadow-glass p-8 border border-border backdrop-blur-md"
-        >
-          <h1 className="text-4xl font-bold mb-2 text-primary font-display">
+      <main className="min-h-screen w-full bg-gradient-to-br from-background via-surface to-primary/30 flex flex-col items-center py-10 px-4 pt-24">
+        <Navbar />
+        <div className="w-full max-w-4xl mx-auto px-4 flex flex-col items-center">
+          <h1 className="text-5xl font-extrabold mb-8 text-primary font-display drop-shadow-lg text-center">
             {project.title}
             {hasAdopted && (
-              <span className="ml-4 px-3 py-1 rounded-full bg-green-600 text-white text-sm font-semibold align-middle">
+              <span className="ml-4 px-3 py-1 rounded-full bg-green-600 text-white text-lg font-semibold align-middle">
                 Adopted
               </span>
             )}
           </h1>
-          <div className="mb-2 text-muted">Category: {project.category}</div>
-          <div className="mb-2 text-muted">Status: {project.status}</div>
-          <div className="mb-2 text-muted">Tools/Medium: {project.tools}</div>
-          <div className="mb-2 text-muted">
-            Tags:{" "}
-            {project.tags?.map((t) => (
-              <span
-                key={t}
-                className="inline-block bg-glass text-primary rounded px-2 py-0.5 mr-1"
-              >
-                #{t}
-              </span>
-            ))}
-          </div>
-          <div className="mb-2 text-muted">
-            Author:{" "}
-            {author ? (
-              <Link
-                href={`/profile/${author.unique_id}`}
-                className="text-muted hover:underline font-mono"
-              >
-                {author.name || "User"} ({author.unique_id})
-              </Link>
-            ) : (
-              <span>Loading...</span>
+          {/* Row: left = main image, right = info box */}
+          <div className="w-full flex flex-col md:flex-row gap-8 justify-center items-start mb-10">
+            {/* Main image */}
+            {imageFiles.length > 0 && (
+              <div className="flex-shrink-0 flex justify-center w-full md:w-auto">
+                <img
+                  src={imageFiles[0].url}
+                  alt={imageFiles[0].name}
+                  className="w-[320px] h-[250px] object-cover rounded-2xl border-8 border-white shadow-2xl"
+                />
+              </div>
             )}
+            {/* Info box */}
+            <div className="flex-1 bg-white/80 rounded-2xl shadow-lg p-8 flex flex-col gap-4 min-w-[260px]">
+              <div className="text-lg font-semibold text-primary">
+                Category:
+              </div>
+              <div className="text-muted mb-2">{project.category}</div>
+              <div className="text-lg font-semibold text-primary">Status:</div>
+              <div className="text-muted mb-2">{project.status}</div>
+              <div className="text-lg font-semibold text-primary">
+                Tools/Medium:
+              </div>
+              <div className="text-muted mb-2">{project.tools}</div>
+              <div className="text-lg font-semibold text-primary">Tags:</div>
+              <div className="flex flex-wrap gap-2">
+                {project.tags?.map((t) => (
+                  <span
+                    key={t}
+                    className="inline-block bg-glass text-primary rounded px-3 py-1 font-semibold text-base shadow"
+                  >
+                    #{t}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="mb-2 text-muted">
-            Posted: {new Date(project.created_at).toLocaleString()}
+          {/* Description box */}
+          <div className="w-full bg-white/80 rounded-2xl shadow-lg p-8 mb-8 text-xl text-gray-800">
+            <div className="font-bold text-primary mb-2">Description</div>
+            <div className="whitespace-pre-line">{project.description}</div>
           </div>
-          <div className="mb-4 text-gray-200 whitespace-pre-line">
-            {project.description}
+          {/* Why abandoned box */}
+          <div className="w-full bg-white/80 rounded-2xl shadow-lg p-8 mb-8 text-lg text-gray-800">
+            <div className="font-bold text-accent mb-2">
+              Why was it abandoned?
+            </div>
+            <div className="whitespace-pre-line">
+              {project.reason_abandoned}
+            </div>
           </div>
-          <div className="mb-4 text-gray-200 whitespace-pre-line">
-            <strong className="text-accent">Why was it abandoned?</strong>
-            <div>{project.reason_abandoned}</div>
-          </div>
+          {/* Links box */}
           {project.links?.length > 0 && (
-            <div className="mb-4">
-              <strong className="text-primary">Links:</strong>
+            <div className="w-full bg-white/80 rounded-2xl shadow-lg p-8 mb-8">
+              <div className="font-bold text-primary mb-2 text-lg">Links</div>
               <ul className="list-disc ml-6">
                 {project.links.map((link, i) => (
                   <li key={i}>
                     <a
                       href={link}
-                      className="text-accent underline"
+                      className="text-accent underline text-base font-semibold hover:text-black transition-colors"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -255,35 +266,64 @@ export default function ProjectDetailPage() {
               </ul>
             </div>
           )}
-          {/* Main (card) image and thumbnails row */}
-          {imageFiles.length > 0 && (
-            <div className="mb-6">
-              {imageFiles.length > 1 && (
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {imageFiles.slice(0, 10).map((img, idx) => (
-                    <div key={idx} className="relative">
-                      <img
-                        src={img.url}
-                        alt={img.name}
-                        className={`w-[124px] h-[124px] object-cover rounded cursor-pointer border border-gray-300 ${
-                          idx === 0 ? "border-4 border-white" : ""
-                        }`}
-                        onClick={() => openImageModal(idx)}
-                      />
-                      {imageFiles.length > 10 && idx === 9 && (
-                        <div
-                          className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded cursor-pointer"
-                          onClick={openGridModal}
-                        >
-                          <span className="text-white text-2xl font-bold select-none">
-                            10+
-                          </span>
-                        </div>
-                      )}
-                    </div>
+          {/* Files box (non-image files) */}
+          {project.files?.filter(
+            (file) => !/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)
+          ).length > 0 && (
+            <div className="w-full bg-white/80 rounded-2xl shadow-lg p-8 mb-8">
+              <div className="font-bold text-primary mb-2 text-lg">Files</div>
+              <ul className="list-disc ml-6">
+                {project.files
+                  .filter(
+                    (file) => !/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)
+                  )
+                  .map((file, i) => (
+                    <li key={i} className="flex items-center gap-4">
+                      <a
+                        href={file.url}
+                        className="text-accent underline text-base font-semibold hover:text-black transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {file.name}
+                      </a>
+                    </li>
                   ))}
-                </div>
-              )}
+              </ul>
+            </div>
+          )}
+          {/* Images box (thumbnails, grid, modal) */}
+          {imageFiles.length > 0 && (
+            <div className="w-full bg-white/80 rounded-2xl shadow-lg p-8 mb-8">
+              <div className="font-bold text-primary mb-4 text-lg">
+                Project Images
+              </div>
+              <div className="flex flex-wrap gap-4 justify-center">
+                {imageFiles.slice(0, 10).map((img, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={img.url}
+                      alt={img.name}
+                      className={`w-[124px] h-[124px] object-cover rounded-xl cursor-pointer border border-gray-300 ${
+                        idx === 0
+                          ? "border-8 border-white shadow-lg"
+                          : "border-2 border-gray-400"
+                      }`}
+                      onClick={() => openImageModal(idx)}
+                    />
+                    {imageFiles.length > 10 && idx === 9 && (
+                      <div
+                        className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60 rounded-xl cursor-pointer"
+                        onClick={openGridModal}
+                      >
+                        <span className="text-white text-2xl font-bold select-none">
+                          10+
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
               {/* Full Image Modal */}
               {modalOpen && modalImageIdx !== null && (
                 <div
@@ -293,7 +333,7 @@ export default function ProjectDetailPage() {
                   <img
                     src={imageFiles[modalImageIdx].url}
                     alt={imageFiles[modalImageIdx].name}
-                    className="max-w-[90vw] max-h-[90vh] rounded shadow-lg border-4 border-white"
+                    className="max-w-[90vw] max-h-[90vh] rounded-2xl shadow-2xl border-8 border-white"
                     style={{ zIndex: 60 }}
                     onClick={(e) => e.stopPropagation()}
                   />
@@ -306,16 +346,16 @@ export default function ProjectDetailPage() {
                   onClick={closeGridModal}
                 >
                   <div
-                    className="bg-white rounded-lg shadow-lg p-6 max-h-[90vh] overflow-y-auto"
+                    className="bg-white rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="grid grid-cols-5 gap-6">
                       {imageFiles.map((img, idx) => (
                         <img
                           key={idx}
                           src={img.url}
                           alt={img.name}
-                          className="w-[124px] h-[124px] object-cover rounded cursor-pointer border border-gray-300"
+                          className="w-[124px] h-[124px] object-cover rounded-xl cursor-pointer border-2 border-gray-300"
                           onClick={() => {
                             setModalImageIdx(idx);
                             setModalOpen(true);
@@ -329,31 +369,8 @@ export default function ProjectDetailPage() {
               )}
             </div>
           )}
-          {/* In the files/documents section, only show non-image files */}
-          {project.files?.length > 0 && (
-            <div className="mb-4">
-              <strong className="text-primary">Files:</strong>
-              <ul className="list-disc ml-6 flex flex-col gap-3 mt-2">
-                {project.files
-                  .filter(
-                    (file) => !/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file.name)
-                  )
-                  .map((file, i) => (
-                    <li key={i} className="flex items-center gap-4">
-                      <a
-                        href={file.url}
-                        className="text-accent underline text-lg font-semibold hover:text-black transition-colors"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {file.name}
-                      </a>
-                    </li>
-                  ))}
-              </ul>
-            </div>
-          )}
-          <div className="flex gap-4 mt-6">
+          {/* Action buttons and adopters section remain unchanged */}
+          <div className="flex gap-6 mt-10 justify-center">
             {user && user.id !== project.creator_id && (
               <>
                 <Button
@@ -419,7 +436,7 @@ export default function ProjectDetailPage() {
               Remix tree coming soon.
             </div>
           </div>
-        </motion.div>
+        </div>
       </main>
     </>
   );
