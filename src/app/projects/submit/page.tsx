@@ -50,8 +50,12 @@ export default function SubmitProjectPage({
   const [user, setUser] = useState<any>(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
-  const [imageSrcs, setImageSrcs] = useState<string[]>([]);
+  // --- UNIFIED IMAGE STATE ---
+  // Instead of separate existingImages/imageFiles/imageSrcs, use one array:
+  // Each item: { file?: File, url: string, name: string, type: string, size?: number, isNew?: boolean }
+  const [images, setImages] = useState<any[]>([]); // unified list
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imageSrcs, setImageSrcs] = useState<string[]>([]);
   const [docFiles, setDocFiles] = useState<File[]>([]);
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [cropModalOpen, setCropModalOpen] = useState(false);
@@ -63,6 +67,11 @@ export default function SubmitProjectPage({
     src: string;
     file: File;
   } | null>(null);
+  // --- STATE REFACTOR ---
+  // Add state for existing files (edit mode)
+  const [existingImages, setExistingImages] = useState<UploadedFile[]>([]); // for images from DB
+  const [existingDocs, setExistingDocs] = useState<UploadedFile[]>([]); // for docs from DB
+  const [removedDocIdxs, setRemovedDocIdxs] = useState<number[]>([]); // indices of removed existing docs
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -92,7 +101,10 @@ export default function SubmitProjectPage({
           setTags((data.tags || []).join(", "));
           setStatus(data.status);
           setLinks((data.links || []).join(", "));
-          // files: skip for now
+          // --- Load files ---
+          const files: UploadedFile[] = data.files || [];
+          const imgs = files.filter(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
+          setImages(imgs.map(f => ({ ...f, isNew: false })));
         }
       };
       fetchProject();
@@ -103,7 +115,7 @@ export default function SubmitProjectPage({
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
-      if (imageFiles.length + files.length > 100) {
+      if (images.length + files.length > 100) {
         setErrorMsg("You can upload up to 100 images.");
         return;
       }
@@ -116,8 +128,15 @@ export default function SubmitProjectPage({
         });
       });
       const srcs = await Promise.all(readers);
-      setImageFiles((prev) => [...prev, ...files]);
-      setImageSrcs((prev) => [...prev, ...srcs]);
+      const newImgs = files.map((file, i) => ({
+        file,
+        url: srcs[i],
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        isNew: true,
+      }));
+      setImages(prev => [...prev, ...newImgs]);
       e.target.value = ""; // reset input
     }
   };
@@ -149,28 +168,48 @@ export default function SubmitProjectPage({
   // When cropping is saved, update the thumbnail list so the cropped image is first
   const handleCropSave = async () => {
     if (cropImageIdx === null || !croppedAreaPixels) return;
-    const src = imageSrcs[cropImageIdx];
-    const file = imageFiles[cropImageIdx];
+    const img = images[cropImageIdx];
+    const src = img.url; // Always use the stored preview URL
     const cropped = await getCroppedImg(src, croppedAreaPixels);
     // Convert base64 to Blob and create a new File for upload
     const res = await fetch(cropped as string);
     const blob = await res.blob();
     const croppedFile = new File(
       [blob],
-      file.name.replace(/\.[^.]+$/, "") + "_cropped.png",
+      (img.name || "cropped") + "_cropped.png",
       { type: "image/png" }
     );
-    // Move the cropped image to the front of the list
-    setCardImage({ src: cropped as string, file: croppedFile });
-    setImageSrcs((prev) => [
-      cropped as string,
-      ...prev.filter((_, i) => i !== cropImageIdx),
-    ]);
-    setImageFiles((prev) => [
-      croppedFile,
-      ...prev.filter((_, i) => i !== cropImageIdx),
-    ]);
+    const croppedImg = {
+      file: croppedFile,
+      url: cropped as string,
+      name: croppedFile.name,
+      type: croppedFile.type,
+      size: croppedFile.size,
+      isNew: true,
+    };
+    setImages(prev => [croppedImg, ...prev.filter((_, i) => i !== cropImageIdx)]);
     setCropModalOpen(false);
+  };
+
+  // --- REMOVE HANDLERS ---
+  const handleRemoveImage = (idx: number) => {
+    setImages(prev => prev.filter((_, i) => i !== idx));
+  };
+  const handleRemoveNewImage = (idx: number) => {
+    setImageFiles(prev => prev.filter((_, i) => i !== idx));
+    setImageSrcs(prev => prev.filter((_, i) => i !== idx));
+  };
+  const handleRemoveExistingDoc = (idx: number) => {
+    setRemovedDocIdxs(prev => [...prev, idx]);
+  };
+  const handleRemoveNewDoc = (idx: number) => {
+    setDocFiles(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  // --- THUMBNAIL SETTER ---
+  const handleSetThumbnail = (idx: number) => {
+    if (idx === 0) return;
+    setImages(prev => [prev[idx], ...prev.filter((_, i) => i !== idx)]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,28 +231,33 @@ export default function SubmitProjectPage({
       .map((l) => l.trim())
       .filter(Boolean);
     const uploadedFiles: UploadedFile[] = [];
-    // Upload images
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
-      const filePath = `${user.id}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("project-files")
-        .upload(filePath, file);
-      if (uploadError) {
-        setError(`File upload failed: ${uploadError.message}`);
-        setLoading(false);
-        return;
+    // Handle images: upload new ones, keep existing
+    for (const img of images) {
+      if (img.isNew && img.file) {
+        // upload
+        const filePath = `${user.id}/${Date.now()}_${img.file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("project-files")
+          .upload(filePath, img.file);
+        if (uploadError) {
+          setError(`File upload failed: ${uploadError.message}`);
+          setLoading(false);
+          return;
+        }
+        const { data: urlData } = supabase.storage
+          .from("project-files")
+          .getPublicUrl(filePath);
+        uploadedFiles.push({
+          name: img.file.name,
+          url: urlData.publicUrl,
+          path: filePath,
+          type: img.file.type,
+          size: img.file.size,
+        });
+      } else {
+        // keep existing
+        uploadedFiles.push(img);
       }
-      const { data: urlData } = supabase.storage
-        .from("project-files")
-        .getPublicUrl(filePath);
-      uploadedFiles.push({
-        name: file.name,
-        url: urlData.publicUrl,
-        path: filePath,
-        type: file.type,
-        size: file.size,
-      });
     }
     // Upload documents
     for (let i = 0; i < docFiles.length; i++) {
@@ -238,6 +282,16 @@ export default function SubmitProjectPage({
         size: file.size,
       });
     }
+    // Add existing images (not removed)
+    // existingImages.forEach((img, idx) => {
+    //   if (!removedImageIdxs.includes(idx)) uploadedFiles.push(img);
+    // });
+    // Add new images (already handled by upload loop)
+    // Add existing docs (not removed)
+    existingDocs.forEach((doc, idx) => {
+      if (!removedDocIdxs.includes(idx)) uploadedFiles.push(doc);
+    });
+    // Add new docs (already handled by upload loop)
     if (isEdit && id) {
       // Update
       const { error: updateError } = await supabase
@@ -320,34 +374,42 @@ export default function SubmitProjectPage({
           {errorMsg && (
             <div className="text-red-500 font-semibold mb-2">{errorMsg}</div>
           )}
-          {imageSrcs.length > 0 && (
+          {/* IMAGE PREVIEW UI */}
+          {images.length > 0 && (
             <>
               <div className="text-yellow-300 text-sm mb-2 text-center">
-                Reminder: Click an image to crop and set as your project card
-                display image.
+                Images (click to crop/set as card image, or remove):
               </div>
               <div className="flex flex-col gap-2 w-full items-center">
-                {Array.from({ length: Math.ceil(imageSrcs.length / 10) }).map(
+                {Array.from({ length: Math.ceil(images.length / 10) }).map(
                   (_, rowIdx) => (
                     <div key={rowIdx} className="flex gap-2 mb-2">
-                      {imageSrcs
+                      {images
                         .slice(rowIdx * 10, rowIdx * 10 + 10)
-                        .map((src, idx) => {
+                        .map((img, idx) => {
                           const globalIdx = rowIdx * 10 + idx;
                           const isCard = globalIdx === 0;
                           return (
-                            <img
-                              key={globalIdx}
-                              src={src}
-                              alt={`Upload ${globalIdx + 1}`}
-                              className={`w-16 h-16 object-cover rounded border-2 cursor-pointer ${
-                                isCard
-                                  ? "border-8 border-white shadow-lg"
-                                  : "border-gray-400"
-                              }`}
-                              onClick={() => openCropModal(globalIdx)}
-                              title="Click to crop and set as card image"
-                            />
+                            <div key={globalIdx} className="relative group">
+                              <img
+                                src={img.url}
+                                alt={img.name || `Upload ${globalIdx + 1}`}
+                                className={`w-16 h-16 object-cover rounded border-2 cursor-pointer ${
+                                  isCard
+                                    ? "border-8 border-white shadow-lg"
+                                    : "border-gray-400"
+                                }`}
+                                onClick={() => openCropModal(globalIdx)}
+                                title="Click to crop and set as card image"
+                              />
+                              <button
+                                type="button"
+                                className="absolute top-0 right-0 bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-80 group-hover:opacity-100"
+                                onClick={() => handleRemoveImage(globalIdx)}
+                              >
+                                ×
+                              </button>
+                            </div>
                           );
                         })}
                     </div>
@@ -362,7 +424,7 @@ export default function SubmitProjectPage({
               <div className="bg-white rounded-lg shadow-lg p-6 relative flex flex-col items-center">
                 <div className="w-[400px] h-[300px] relative">
                   <Cropper
-                    image={imageSrcs[cropImageIdx]}
+                    image={images[cropImageIdx].url} // Always use the stored preview URL
                     crop={crop}
                     zoom={zoom}
                     aspect={288 / 224}
@@ -487,10 +549,37 @@ export default function SubmitProjectPage({
                   </span>
                 </div>
               </label>
+              {/* DOCUMENTS UI */}
+              {existingDocs.filter((_, idx) => !removedDocIdxs.includes(idx)).length > 0 && (
+                <ul className="flex flex-col gap-1 mt-2 list-disc list-inside">
+                  {existingDocs
+                    .map((doc, idx) => ({ doc, idx }))
+                    .filter(({ idx }) => !removedDocIdxs.includes(idx))
+                    .map(({ doc, idx }) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-accent underline text-sm font-semibold hover:text-white transition-colors"
+                        >
+                          {doc.name} ({doc.type || "Unknown type"})
+                        </a>
+                        <button
+                          type="button"
+                          className="bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                          onClick={() => handleRemoveExistingDoc(idx)}
+                        >
+                          ×
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              )}
               {docFiles.length > 0 && (
                 <ul className="flex flex-col gap-1 mt-2 list-disc list-inside">
                   {docFiles.map((file, idx) => (
-                    <li key={idx}>
+                    <li key={idx} className="flex items-center gap-2">
                       <a
                         href={URL.createObjectURL(file)}
                         target="_blank"
@@ -499,6 +588,13 @@ export default function SubmitProjectPage({
                       >
                         {file.name} ({file.type || "Unknown type"})
                       </a>
+                      <button
+                        type="button"
+                        className="bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                        onClick={() => handleRemoveNewDoc(idx)}
+                      >
+                        ×
+                      </button>
                     </li>
                   ))}
                 </ul>
