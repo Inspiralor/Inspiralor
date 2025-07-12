@@ -72,6 +72,8 @@ export default function SubmitProjectPage({
   const [existingImages, setExistingImages] = useState<UploadedFile[]>([]); // for images from DB
   const [existingDocs, setExistingDocs] = useState<UploadedFile[]>([]); // for docs from DB
   const [removedDocIdxs, setRemovedDocIdxs] = useState<number[]>([]); // indices of removed existing docs
+  // --- UNIFIED DOC STATE ---
+  const [docs, setDocs] = useState<any[]>([]); // unified doc list: { file?: File, url: string, name: string, type: string, size?: number, isNew?: boolean }
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -104,7 +106,9 @@ export default function SubmitProjectPage({
           // --- Load files ---
           const files: UploadedFile[] = data.files || [];
           const imgs = files.filter(f => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
+          const docs = files.filter(f => !/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(f.name));
           setImages(imgs.map(f => ({ ...f, isNew: false })));
+          setDocs(docs.map(f => ({ ...f, isNew: false })));
         }
       };
       fetchProject();
@@ -144,12 +148,20 @@ export default function SubmitProjectPage({
   const onDocChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
-      if (docFiles.length + files.length > 5) {
+      if (docs.length + files.length > 5) {
         setErrorMsg("You can upload up to 5 documents only.");
         return;
       }
       setErrorMsg("");
-      setDocFiles((prev) => [...prev, ...files]);
+      const newDocs = files.map((file) => ({
+        file,
+        url: URL.createObjectURL(file),
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        isNew: true,
+      }));
+      setDocs(prev => [...prev, ...newDocs]);
       e.target.value = "";
     }
   };
@@ -205,6 +217,9 @@ export default function SubmitProjectPage({
   const handleRemoveNewDoc = (idx: number) => {
     setDocFiles(prev => prev.filter((_, i) => i !== idx));
   };
+  const handleRemoveDoc = (idx: number) => {
+    setDocs(prev => prev.filter((_, i) => i !== idx));
+  };
 
   // --- THUMBNAIL SETTER ---
   const handleSetThumbnail = (idx: number) => {
@@ -217,6 +232,27 @@ export default function SubmitProjectPage({
     setError("");
     setSuccess("");
     setLoading(true);
+    // --- Title/Description required check ---
+    if (!title.trim() || !description.trim()) {
+      setError("Title and Description are required.");
+      setLoading(false);
+      return;
+    }
+    // --- Title uniqueness check ---
+    const { data: existing, error: titleError } = await supabase
+      .from("projects")
+      .select("id")
+      .eq("title", title.trim());
+    if (titleError) {
+      setError("Error checking title uniqueness.");
+      setLoading(false);
+      return;
+    }
+    if (existing && existing.length > 0 && (!isEdit || existing[0].id !== id)) {
+      setError("This title is already used. Please pick another title.");
+      setLoading(false);
+      return;
+    }
     if (!user) {
       setError("You must be signed in to submit a project.");
       setLoading(false);
@@ -259,28 +295,31 @@ export default function SubmitProjectPage({
         uploadedFiles.push(img);
       }
     }
-    // Upload documents
-    for (let i = 0; i < docFiles.length; i++) {
-      const file = docFiles[i];
-      const filePath = `${user.id}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("project-files")
-        .upload(filePath, file);
-      if (uploadError) {
-        setError(`File upload failed: ${uploadError.message}`);
-        setLoading(false);
-        return;
+    // Handle docs: upload new ones, keep existing
+    for (const doc of docs) {
+      if (doc.isNew && doc.file) {
+        const filePath = `${user.id}/${Date.now()}_${doc.file.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("project-files")
+          .upload(filePath, doc.file);
+        if (uploadError) {
+          setError(`File upload failed: ${uploadError.message}`);
+          setLoading(false);
+          return;
+        }
+        const { data: urlData } = supabase.storage
+          .from("project-files")
+          .getPublicUrl(filePath);
+        uploadedFiles.push({
+          name: doc.file.name,
+          url: urlData.publicUrl,
+          path: filePath,
+          type: doc.file.type,
+          size: doc.file.size,
+        });
+      } else {
+        uploadedFiles.push(doc);
       }
-      const { data: urlData } = supabase.storage
-        .from("project-files")
-        .getPublicUrl(filePath);
-      uploadedFiles.push({
-        name: file.name,
-        url: urlData.publicUrl,
-        path: filePath,
-        type: file.type,
-        size: file.size,
-      });
     }
     // Add existing images (not removed)
     // existingImages.forEach((img, idx) => {
@@ -550,48 +589,22 @@ export default function SubmitProjectPage({
                 </div>
               </label>
               {/* DOCUMENTS UI */}
-              {existingDocs.filter((_, idx) => !removedDocIdxs.includes(idx)).length > 0 && (
+              {docs.length > 0 && (
                 <ul className="flex flex-col gap-1 mt-2 list-disc list-inside">
-                  {existingDocs
-                    .map((doc, idx) => ({ doc, idx }))
-                    .filter(({ idx }) => !removedDocIdxs.includes(idx))
-                    .map(({ doc, idx }) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <a
-                          href={doc.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-accent underline text-sm font-semibold hover:text-white transition-colors"
-                        >
-                          {doc.name} ({doc.type || "Unknown type"})
-                        </a>
-                        <button
-                          type="button"
-                          className="bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                          onClick={() => handleRemoveExistingDoc(idx)}
-                        >
-                          ×
-                        </button>
-                      </li>
-                    ))}
-                </ul>
-              )}
-              {docFiles.length > 0 && (
-                <ul className="flex flex-col gap-1 mt-2 list-disc list-inside">
-                  {docFiles.map((file, idx) => (
+                  {docs.map((doc, idx) => (
                     <li key={idx} className="flex items-center gap-2">
                       <a
-                        href={URL.createObjectURL(file)}
+                        href={doc.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-accent underline text-sm font-semibold hover:text-white transition-colors"
                       >
-                        {file.name} ({file.type || "Unknown type"})
+                        {doc.name} ({doc.type || "Unknown type"})
                       </a>
                       <button
                         type="button"
                         className="bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                        onClick={() => handleRemoveNewDoc(idx)}
+                        onClick={() => handleRemoveDoc(idx)}
                       >
                         ×
                       </button>
