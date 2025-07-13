@@ -88,10 +88,10 @@ export default function AdoptedProjectsPage() {
               Adopted Projects
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">
-              Browse Your Adopted Projects
+              YOUR CONTRIBUTIONS IN ACTION
             </h1>
             <div className="text-gray-700 text-sm md:text-base mb-6">
-              All the projects you have adopted are listed below.
+              View the projects you’ve joined and continue shaping with your skills and passion.
             </div>
           </div>
           {adopted.length === 0 ? (

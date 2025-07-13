@@ -168,7 +168,7 @@ export default function Navbar() {
               }}
               className="bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-colors"
             >
-              Sign Out
+              Logout
             </button>
             <Link href={profileLink} className="flex items-center">
               {profileImage !== null ? (
@@ -182,13 +182,13 @@ export default function Navbar() {
           <>
             <button
               onClick={() => router.push("/login")}
-              className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600"
+              className="text-white px-4 py-2 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600"
             >
-              Sign In
+              Login
             </button>
             <button
               onClick={() => router.push("/signup")}
-              className="text-white px-4 py-1 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-emerald-500 via-green-600 to-lime-500 hover:from-emerald-600 hover:to-lime-600 ml-2"
+              className="bg-emerald-400 hover:bg-emerald-500 transition-colors text-white px-3 py-2 rounded text-sm font-semibold shadow-md"
             >
               Get Started
             </button>

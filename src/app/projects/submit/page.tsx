@@ -502,7 +502,7 @@ export default function SubmitProjectPage({
             transition={{ duration: 0.7 }}
           >
             <h1 className="text-3xl font-extrabold mb-4 text-primary font-display text-center drop-shadow-lg">
-              Submit an Abandoned Project
+              SUBMIT AN ABANDONED IDEA
             </h1>
             <div className="flex flex-col gap-6">
               <input

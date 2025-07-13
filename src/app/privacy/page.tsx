@@ -8,7 +8,6 @@ export default function PrivacyPage() {
       <main className="text-black min-h-screen bg-white flex flex-col items-center px-4 py-10 pt-24">
         <section className="w-full max-w-3xl bg-white rounded-xl shadow-lg p-8">
           <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
-          <div className="text-gray-700 mb-4">Inspiralor Privacy Policy</div>
           <div className="text-sm text-gray-500 mb-4">
             Last Updated: July 1, 2025
           </div>
@@ -60,10 +59,10 @@ export default function PrivacyPage() {
             If you have any questions or concerns about this Privacy Policy,
             please contact us at{" "}
             <a
-              href="mailto:hokwai24@gmail.com"
+              href="mailto:inspiralor@gmail.com"
               className="text-emerald-600 underline"
             >
-              hokwai24@gmail.com
+              inspiralor@gmail.com
             </a>
             .
           </p>

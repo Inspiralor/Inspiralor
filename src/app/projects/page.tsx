@@ -163,7 +163,7 @@ export default function ProjectsPage() {
               Explore Projects
             </div>
             <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">
-              Browse Our Open Initiatives
+              BROWSE OUR OPEN INITIATIVES
             </h1>
             <div className="text-gray-700 text-sm md:text-base mb-6">
               Discover a variety of innovative projects seeking passionate

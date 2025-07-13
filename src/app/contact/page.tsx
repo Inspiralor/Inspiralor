@@ -54,10 +54,10 @@ export default function ContactPage() {
               questions, or support. You can fill out our contact form, email us
               directly at{" "}
               <a
-                href="mailto:contact@Inspiralor.com"
+                href="mailto:inspiralor@gmail.com"
                 className="text-emerald-600 underline"
               >
-                contact@Inspiralor.com
+                inspiralor@gmail.com
               </a>
               , or connect with us on social media. We look forward to hearing
               from you and exploring how we can work together to bring ideas to
@@ -69,8 +69,8 @@ export default function ContactPage() {
             <h2 className="font-bold text-lg mb-2 text-black">Call Us</h2>
             <p className="text-gray-700 text-sm mb-2">
               Call us at{" "}
-              <a href="tel:+14155550199" className="text-emerald-600 underline">
-                +1 415-555-0199
+              <a href="tel:+18086790376" className="text-emerald-600 underline">
+                +1 (808) 679-0376
               </a>{" "}
               for immediate assistance or inquiries. Our team is available
               during business hours to support your collaboration efforts and
@@ -81,10 +81,10 @@ export default function ContactPage() {
             <span className="text-3xl mb-2">📍</span>
             <h2 className="font-bold text-lg mb-2 text-black">Visit Us</h2>
             <p className="text-gray-700 text-sm mb-2">
-              Our office is located at 123 Market Street, San Francisco, CA
-              94103. You can view the location on{" "}
+              Our office is located at #, Honolulu, HI
+              96817. You can view the location on{" "}
               <a
-                href="https://maps.google.com/?q=123+Market+Street,+San+Francisco,+CA+94103"
+                href="#"
                 className="text-emerald-600 underline"
                 target="_blank"
                 rel="noopener noreferrer"

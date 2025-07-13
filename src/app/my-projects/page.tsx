@@ -66,9 +66,15 @@ export default function MyProjectsPage() {
     <>
       <main className="min-h-screen bg-white pb-20 pt-24">
         <section className="max-w-5xl mx-auto py-12 px-4">
-          <h1 className="text-3xl font-bold mb-6 text-black font-display">
-            My Projects
-          </h1>
+            <div className="uppercase text-xs font-bold text-gray-500 tracking-widest mb-2">
+              My Projects
+            </div>
+            <h1 className="text-2xl md:text-3xl font-bold text-black mb-1">
+              YOUR CREATIVE SPACE
+            </h1>
+            <div className="text-gray-700 text-sm md:text-base mb-6">
+              Track and manage the projects you’ve created, from concept to collaboration.
+            </div>
           {loading ? (
             <div>Loading...</div>
           ) : projects.length === 0 ? (

@@ -7,7 +7,7 @@ import { SparklesIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { useInView } from "react-intersection-observer";
-import { FaLinkedin, FaXTwitter, FaFacebook } from "react-icons/fa6";
+import { FaLinkedin, FaXTwitter, FaFacebook, FaGithub } from "react-icons/fa6";
 import type { User } from "@supabase/supabase-js";
 
 function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
@@ -205,7 +205,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12 px-4">
           <div className="flex-1">
             <h2 className="text-4xl font-extrabold mb-4">
-              Our Mission & Vision
+              OUR MISSION & VISION
             </h2>
             <p className="text-lg mb-10">
               At Inspiralor, we aim to breathe new life into abandoned projects
@@ -247,9 +247,9 @@ export default function Home() {
       {/* Section 3: Latest New Projects (black bg, white text) */}
       <div className="w-full bg-black py-20 text-white">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-4xl font-extrabold mb-6">Latest New Projects</h2>
+          <h2 className="text-4xl font-extrabold mb-6">LATEST NEW PROJECTS</h2>
           <p className="text-lg mb-10 max-w-2xl">
-            Explore the six newest arrivals in Inspiralor,unfinished visions,
+            Explore the newest arrivals in Inspiralor,unfinished visions,
             bold experiments, and forgotten ideas waiting to be rediscovered.
             Dive into a collection where creativity lives on, even if the
             projects didn't.
@@ -268,7 +268,7 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-start gap-12 mb-12">
             <div className="flex-1">
               <h2 className="text-4xl font-extrabold mb-4">
-                Unlocking Innovation: <br />
+                UNLOCKING INNOVATION: <br />
                 <span className="italic">
                   How <b>Inspiralor</b> Works
                 </span>
@@ -361,15 +361,12 @@ export default function Home() {
           <div className="flex flex-col md:flex-row md:items-start gap-12 mb-12">
             <div className="flex-1">
               <div className="uppercase text-sm font-bold mb-2">Our Team</div>
-              <h2 className="text-4xl font-extrabold mb-2">Meet Innovators</h2>
+              <h2 className="text-4xl font-extrabold mb-2">MEET OUR TEAM</h2>
               <p className="text-lg mb-8">
-                Dedicated to connecting creators with unfinished ideas,
-                fostering collaboration and innovation.
+              The story begins with the people who made it possible, a team of dedicated minds whose vision, passion, and effort brought this platform to life.
               </p>
               <a
-                href="https://github.com/hokwaichan"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/about"
                 className="border border-emerald-400 text-emerald-400 px-3 py-2 rounded inline-block"
               >
                 Learn More
@@ -401,7 +398,7 @@ export default function Home() {
                 </p>
                 <div className="flex gap-2 mt-2">
                   <a
-                    href="https://github.com/hokwaichan"
+                    href="https://www.linkedin.com/in/hok-wai-chan-91655525b/"
                     className="text-black"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -414,7 +411,7 @@ export default function Home() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    <FaXTwitter size={20} />
+                    <FaGithub size={20} />
                   </a>
                 </div>
               </div>

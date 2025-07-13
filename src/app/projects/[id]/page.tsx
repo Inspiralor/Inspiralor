@@ -428,14 +428,6 @@ export default function ProjectDetailPage() {
               </ul>
             </div>
           )}
-          <div className="mt-10">
-            <h2 className="text-xl font-semibold mb-2 text-primary">
-              Remix Tree
-            </h2>
-            <div className="p-4 border rounded-xl bg-glass text-muted">
-              Remix tree coming soon.
-            </div>
-          </div>
         </div>
       </main>
     </>
