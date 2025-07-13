@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/components/AuthContext";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { nanoid } from "nanoid";
 
 // Types
 interface ProjectFile {
@@ -138,6 +139,60 @@ export default function Landing() {
       setLoading(false);
     };
     fetchUser();
+  }, [user]);
+
+  // Ensure profile is created only after email confirmation (first login)
+  useEffect(() => {
+    const ensureProfile = async () => {
+      if (!user) return;
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      if (!profile) {
+        // Create profile if not exists
+        const unique_id = nanoid(8);
+        const emailName = user.email ? user.email.split('@')[0] : "";
+        await supabase.from("profiles").insert([
+          {
+            id: user.id,
+            unique_id,
+            name: emailName,
+            email: user.email,
+            bio: "",
+            interests: "",
+            portfolio_links: [],
+            profile_image: null,
+            github: "",
+            linkedin: "",
+            instagram: "",
+            x: "",
+            facebook: "",
+          },
+        ]);
+      } else {
+        // Optionally update missing fields
+        let needsUpdate = false;
+        const updates: any = {};
+        if (!profile.unique_id) {
+          updates.unique_id = nanoid(8);
+          needsUpdate = true;
+        }
+        if ((!profile.name || profile.name === "") && user.email) {
+          updates.name = user.email.split("@")[0];
+          needsUpdate = true;
+        }
+        if (profile.email !== user.email) {
+          updates.email = user.email ?? "";
+          needsUpdate = true;
+        }
+        if (needsUpdate) {
+          await supabase.from("profiles").update(updates).eq("id", user.id);
+        }
+      }
+    };
+    ensureProfile();
   }, [user]);
 
   // Fetch latest projects

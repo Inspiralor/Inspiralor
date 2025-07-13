@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
+import { nanoid } from "nanoid";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -21,12 +22,41 @@ export default function SignupPage() {
       setError(error.message);
     } else {
       // Generate a unique, user-friendly ID (8-char nanoid)
-      const uniqueId = Math.random().toString(36).substring(2, 10);
+      const uniqueId = nanoid(8);
+      // Extract name from email (e.g., hokwai@gmail.com -> hokwai)
+      const emailName = email.split('@')[0];
       if (data.user) {
-        await supabase
+        // Try to insert a new profile (if not exists), else update
+        const { error: insertError } = await supabase
           .from("profiles")
-          .update({ unique_id: uniqueId })
-          .eq("id", data.user.id);
+          .insert([
+            {
+              id: data.user.id,
+              unique_id: uniqueId,
+              name: emailName,
+              email: email,
+              bio: "",
+              interests: "",
+              portfolio_links: [],
+              profile_image: null,
+              github: "",
+              linkedin: "",
+              instagram: "",
+              x: "",
+              facebook: "",
+            },
+          ]);
+        if (insertError && insertError.code !== '23505') { // 23505: unique violation
+          // If insert fails for another reason, fallback to update
+          await supabase
+            .from("profiles")
+            .update({ 
+              unique_id: uniqueId,
+              name: emailName,
+              email: email
+            })
+            .eq("id", data.user.id);
+        }
       }
       setSuccess("Check your email for a confirmation link.");
       setTimeout(() => router.push("/login"), 2000);

@@ -73,107 +73,113 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       setLoading(true);
       if (!user) return setLoading(false);
-      // Fetch profile
-      let { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      if (!profile) {
-        // Create empty profile if not exists
-        const unique_id = nanoid(8);
-        await supabase.from("profiles").insert([
-          {
-            id: user.id,
-            unique_id,
-            name: "",
-            bio: "",
-            interests: "",
-            portfolio_links: [],
-            profile_image: null,
-            github: "",
-            linkedin: "",
-            instagram: "",
-            x: "",
-            facebook: "",
-            email: user.email ?? "",
-          },
-        ]);
-        profile = {
-          id: user.id,
-          unique_id,
-          name: "",
-          bio: "",
-          interests: "",
-          portfolio_links: [],
-          profile_image: null,
-          github: "",
-          linkedin: "",
-          instagram: "",
-          x: "",
-          facebook: "",
-          email: user.email ?? "",
-        };
-      } else if (profile.email !== user.email) {
-        // Update email if it has changed or is missing
-        await supabase
+      try {
+        // Fetch profile
+        let { data: profile, error } = await supabase
           .from("profiles")
-          .update({ email: user.email ?? "" })
-          .eq("id", user.id);
-        profile.email = user.email ?? "";
-      }
-      setProfile(profile);
-      setName(profile.name || "");
-      setBio(profile.bio);
-      setInterests(profile.interests);
-      setLinks((profile.portfolio_links || []).join(", "));
-      setProfileImage(profile.profile_image || null);
-      setSocials({
-        github: profile.github || "",
-        linkedin: profile.linkedin || "",
-        instagram: profile.instagram || "",
-        x: profile.x || "",
-        facebook: profile.facebook || "",
-      });
-      // Fetch posted projects
-      const { data: posted } = await supabase
-        .from("projects")
-        .select("id, title, category, status")
-        .eq("creator_id", user.id);
-      setPosted(posted || []);
-      // Fetch favourited project ids
-      const { data: favs } = await supabase
-        .from("favourites")
-        .select("project_id")
-        .eq("user_id", user.id);
-      if (favs && favs.length > 0) {
-        const ids = favs.map((f) => f.project_id);
-        const { data: favProjects } = await supabase
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching profile:', error);
+        }
+        if (profile) {
+          console.log('Fetched profile:', profile);
+          console.log('User object:', user);
+          let needsUpdate = false;
+          const updates: any = {};
+          if (!profile.unique_id) {
+            updates.unique_id = nanoid(8);
+            needsUpdate = true;
+          }
+          if ((!profile.name || profile.name === "") && user.email) {
+            updates.name = user.email.split("@")[0];
+            needsUpdate = true;
+          }
+          if (profile.email !== user.email) {
+            updates.email = user.email ?? "";
+            needsUpdate = true;
+          }
+          if (needsUpdate) {
+            console.log('Updating profile with:', updates);
+            await supabase
+              .from("profiles")
+              .update(updates)
+              .eq("id", user.id);
+            // Refetch updated profile
+            const { data: updatedProfile } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("id", user.id)
+              .single();
+            profile = updatedProfile;
+            console.log('Updated profile:', profile);
+          }
+        } else {
+          // If somehow profile is still missing, just set loading false
+          setLoading(false);
+          return;
+        }
+        setProfile(profile);
+        setName(profile.name || "");
+        setBio(profile.bio);
+        setInterests(profile.interests);
+        setLinks((profile.portfolio_links || []).join(", "));
+        setProfileImage(profile.profile_image || null);
+        setSocials({
+          github: profile.github || "",
+          linkedin: profile.linkedin || "",
+          instagram: profile.instagram || "",
+          x: profile.x || "",
+          facebook: profile.facebook || "",
+        });
+        
+        // Fetch posted projects
+        const { data: posted } = await supabase
           .from("projects")
           .select("id, title, category, status")
-          .in("id", ids);
-        setFavourited(favProjects || []);
-      } else {
-        setFavourited([]);
+          .eq("creator_id", user.id);
+        setPosted(posted || []);
+        
+        // Fetch favourited project ids
+        const { data: favs } = await supabase
+          .from("favourites")
+          .select("project_id")
+          .eq("user_id", user.id);
+        if (favs && favs.length > 0) {
+          const ids = favs.map((f) => f.project_id);
+          const { data: favProjects } = await supabase
+            .from("projects")
+            .select("id, title, category, status")
+            .in("id", ids);
+          setFavourited(favProjects || []);
+        } else {
+          setFavourited([]);
+        }
+        
+        // Fetch adopted projects using adoptions table
+        const { data: adoptions } = await supabase
+          .from("adoptions")
+          .select("project_id")
+          .eq("adopter_id", user.id);
+        if (adoptions && adoptions.length > 0) {
+          const projectIds = adoptions.map(
+            (a: { project_id: string }) => a.project_id
+          );
+          const { data: adoptedProjects } = await supabase
+            .from("projects")
+            .select("id, title, category, status")
+            .in("id", projectIds);
+          setAdopted(adoptedProjects || []);
+        } else {
+          setAdopted([]);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in fetchProfile:', error);
+        setLoading(false);
       }
-      // Fetch adopted projects using adoptions table
-      const { data: adoptions } = await supabase
-        .from("adoptions")
-        .select("project_id")
-        .eq("adopter_id", user.id);
-      if (adoptions && adoptions.length > 0) {
-        const projectIds = adoptions.map(
-          (a: { project_id: string }) => a.project_id
-        );
-        const { data: adoptedProjects } = await supabase
-          .from("projects")
-          .select("id, title, category, status")
-          .in("id", projectIds);
-        setAdopted(adoptedProjects || []);
-      } else {
-        setAdopted([]);
-      }
-      setLoading(false);
     };
     fetchProfile();
   }, [user]);
@@ -269,10 +275,11 @@ export default function ProfilePage() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
-          className="w-full max-w-5xl rounded-xl bg-glass shadow-glass p-12 border border-border backdrop-blur-md flex flex-col gap-8"
+          className="w-full max-w-4xl rounded-xl bg-glass shadow-glass p-12 border border-border backdrop-blur-md"
         >
-          <div className="flex flex-col md:flex-row gap-12 items-center w-full">
-            <div className="relative w-40 h-40">
+          {/* Profile Image Row */}
+          <div className="flex justify-center mb-8">
+            <div className="relative w-48 h-48">
               <Image
                 src={
                   typeof profileImage === "string"
@@ -294,67 +301,103 @@ export default function ProfilePage() {
                 {uploading ? "Uploading..." : "Change"}
               </label>
             </div>
-            <div className="flex-1 flex flex-col gap-3 text-lg">
-              <div className="flex flex-col md:flex-row md:items-center gap-2">
-                <span className="text-3xl font-bold text-primary font-display">
-                  {profile?.name || "Profile"}
-                </span>
-                <span className="ml-4 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-white text-white text-sm font-mono">
-                  ID: {profile?.unique_id || user?.id?.slice(0, 8)}
-                </span>
+          </div>
+
+          {/* Username and ID Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-center gap-4 mb-8">
+            <span className="text-3xl font-bold text-primary font-display text-center">
+              {profile?.name || "Profile"}
+            </span>
+            <span className="px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-white text-white text-sm font-mono">
+              ID: {profile?.unique_id || user?.id?.slice(0, 8)}
+            </span>
+          </div>
+
+          {/* Bio Row */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-primary mb-2">Bio</h3>
+            <p className="text-white">
+              {profile?.bio || <span className="text-muted">No bio</span>}
+            </p>
+          </div>
+
+          {/* Interests Row */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-primary mb-2">Interests</h3>
+            <p className="text-white">
+              {profile?.interests || (
+                <span className="text-muted">No interests</span>
+              )}
+            </p>
+          </div>
+
+          {/* Portfolio Link Row */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-primary mb-2">Portfolio</h3>
+            {profile?.portfolio_links?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {profile.portfolio_links.map((l, i) => (
+                  <a
+                    key={i}
+                    href={l}
+                    className="text-accent underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {l}
+                  </a>
+                ))}
               </div>
-              <div className="text-accent text-base">
-                Email: <span className="font-mono">{user?.email}</span>
-              </div>
-              <div className="mb-2">
-                <strong>Bio:</strong>{" "}
-                {profile?.bio || <span className="text-muted">No bio</span>}
-              </div>
-              <div className="mb-2">
-                <strong>Interests:</strong>{" "}
-                {profile?.interests || (
-                  <span className="text-muted">No interests</span>
-                )}
-              </div>
-              <div className="mb-2">
-                <strong>Portfolio:</strong>{" "}
-                {profile?.portfolio_links?.length ? (
-                  profile.portfolio_links.map((l, i) => (
-                    <a
-                      key={i}
-                      href={l}
-                      className="text-accent underline mr-2"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {l}
-                    </a>
-                  ))
-                ) : (
-                  <span className="text-muted">No links</span>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-4 mt-2">
-                {SOCIALS.map(({ key, label, icon: Icon }) =>
-                  profile && (profile[key] as string) ? (
-                    <a
-                      key={key}
-                      href={profile[key] as string}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1 rounded-full bg-bluegray bg-opacity-20 border border-white text-white hover:bg-white hover:text-primary transition-colors shadow"
-                    >
-                      <Icon className="w-5 h-5" />
-                      <span className="hidden md:inline font-semibold text-sm">
-                        {label}
-                      </span>
-                    </a>
-                  ) : null
-                )}
-              </div>
+            ) : (
+              <span className="text-muted">No portfolio links</span>
+            )}
+          </div>
+
+          {/* Social Media Icons Row */}
+          <div className="mb-8">
+            <h3 className="text-lg font-semibold text-primary mb-4">Social Media</h3>
+            <div className="flex gap-4">
+              {SOCIALS.map(({ key, label, icon: Icon }) =>
+                profile && (profile[key] as string) ? (
+                  <a
+                    key={key}
+                    href={profile[key] as string}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center w-12 h-12 rounded-full bg-bluegray bg-opacity-20 border border-white text-white hover:bg-white hover:text-primary transition-colors shadow"
+                    title={label}
+                  >
+                    <Icon className="w-6 h-6" />
+                  </a>
+                ) : null
+              )}
             </div>
           </div>
-          {editing ? (
+
+          {/* Edit Button Row */}
+          <div className="mb-8">
+            {editing ? (
+              <motion.button
+                onClick={handleSave}
+                className="bg-primary text-accent px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-white hover:text-primary transition-colors text-lg"
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.03 }}
+                disabled={uploading}
+              >
+                Save
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={() => setEditing(true)}
+                className="bg-surface text-accent px-6 py-2 rounded-xl hover:bg-white hover:text-primary transition-colors text-lg font-bold border border-white shadow"
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.03 }}
+              >
+                Edit
+              </motion.button>
+            )}
+          </div>
+          {editing && (
             <div className="mb-10 flex flex-col gap-6">
               <div className="flex flex-col items-center mb-4 gap-4">
                 <div className="relative w-32 h-32">
@@ -434,112 +477,31 @@ export default function ProfilePage() {
                 Save
               </motion.button>
             </div>
-          ) : (
-            <motion.button
-              onClick={() => setEditing(true)}
-              className="bg-surface text-accent px-6 py-2 rounded-xl hover:bg-white hover:text-primary transition-colors text-lg font-bold border border-white shadow"
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ scale: 1.03 }}
-            >
-              Edit
-            </motion.button>
           )}
-          <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold mb-2 text-primary">
-              Posted Projects
-            </h2>
-            <Link href="/my-projects" className="text-accent underline text-sm">
-              My Projects Page
-            </Link>
-          </div>
-          <div className="mb-6">
-            {posted.length === 0 ? (
-              <div className="text-muted">No posted projects.</div>
-            ) : (
-              <ul className="list-disc ml-6">
-                {posted.map((p) => (
-                  <li key={p.id} className="flex items-center gap-2">
-                    <Link
-                      href={`/projects/${p.id}`}
-                      className="text-accent underline"
-                    >
-                      {p.title}
-                    </Link>{" "}
-                    <span className="text-xs text-muted">
-                      ({p.category}, {p.status})
-                    </span>
-                    <button
-                      className="ml-2 px-2 py-1 text-xs bg-blue-700 text-white rounded hover:bg-blue-800"
-                      onClick={() => alert("Edit coming soon!")}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="ml-2 px-2 py-1 text-xs bg-red-700 text-white rounded hover:bg-red-800"
-                      onClick={() => handleDeleteProject(p.id)}
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-2 text-primary">
+          {/* Favourited Projects */}
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold mb-4 text-primary">
               Favourited Projects
             </h2>
             {favourited.length === 0 ? (
               <div className="text-muted">No favourited projects yet.</div>
             ) : (
-              <ul className="list-disc ml-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {favourited.map((p) => (
-                  <li key={p.id}>
+                  <div key={p.id} className="bg-surface/20 rounded-lg p-4 border border-border">
                     <Link
                       href={`/projects/${p.id}`}
-                      className="text-accent underline"
+                      className="text-accent underline font-semibold block mb-2"
                     >
                       {p.title}
-                    </Link>{" "}
+                    </Link>
                     <span className="text-xs text-muted">
-                      ({p.category}, {p.status})
+                      {p.category} • {p.status}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
-            )}
-            <div className="mt-4">
-              <h2 className="text-xl font-semibold mb-2 text-primary">
-                Adopted Projects
-              </h2>
-              {adopted.length === 0 ? (
-                <div className="text-muted">No adopted projects yet.</div>
-              ) : (
-                <ul className="list-disc ml-6">
-                  {adopted.map((p) => (
-                    <li key={p.id}>
-                      <Link
-                        href={`/projects/${p.id}`}
-                        className="text-accent underline"
-                      >
-                        {p.title}
-                      </Link>{" "}
-                      <span className="text-xs text-muted">
-                        ({p.category}, {p.status})
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="mt-2">
-                <Link
-                  href="/adopted-projects"
-                  className="text-blue-500 underline text-sm"
-                >
-                  View All Adopted Projects
-                </Link>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       </main>

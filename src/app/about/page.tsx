@@ -41,9 +41,6 @@ export default function AboutPage() {
               Discover the team that powers Inspiralor and drives innovation in
               project revival.
             </p>
-            <button className="border border-emerald-400 text-emerald-600 px-4 py-2 rounded hover:bg-emerald-50 transition-colors">
-              Explore Projects
-            </button>
           </div>
           <div className="flex-1 flex flex-col gap-8">
             <div className="flex items-center gap-4">
@@ -55,7 +52,7 @@ export default function AboutPage() {
                 <img
                   src="/images/Me/me.jpeg"
                   alt="Hok Wai Chan"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-emerald-400"
+                  className="w-30 h-20 rounded-full object-cover border-2 border-emerald-400"
                 />
               </a>
               <div>

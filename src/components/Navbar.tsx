@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthContext";
 import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/UserAvatar";
 import { useCallback } from "react";
+import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 
 export default function Navbar() {
   const router = useRouter();
@@ -166,9 +167,9 @@ export default function Navbar() {
                 await supabase.auth.signOut();
                 router.push("/");
               }}
-              className="bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-4 py-1 rounded text-sm font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-colors"
+              className="bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 text-white px-4 py-2 rounded text-sm font-semibold shadow-md hover:from-red-600 hover:to-rose-600 transition-colors flex items-center gap-2"
             >
-              Logout
+              Logout <FaSignOutAlt size={14} />
             </button>
             <Link href={profileLink} className="flex items-center">
               {profileImage !== null ? (
@@ -182,9 +183,9 @@ export default function Navbar() {
           <>
             <button
               onClick={() => router.push("/login")}
-              className="text-white px-4 py-2 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600"
+              className="text-white px-4 py-2 rounded text-sm font-semibold shadow-md bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 hover:from-indigo-600 hover:to-pink-600 flex items-center gap-2"
             >
-              Login
+              Login <FaSignInAlt size={14} />
             </button>
             <button
               onClick={() => router.push("/signup")}
