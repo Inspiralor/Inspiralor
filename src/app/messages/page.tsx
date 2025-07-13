@@ -105,7 +105,7 @@ export default function MessagesPage() {
           {loading ? (
             <div className="p-6 text-center text-muted">Loading...</div>
           ) : conversations.length === 0 ? (
-            <div className="p-6 text-center text-muted">No messages yet.</div>
+            <div className="text-muted text-center py-12 text-xs">No messages yet.</div>
           ) : (
             <ul className="divide-y">
               {conversations.map((conv, i) => {

@@ -162,6 +162,13 @@ export default function Navbar() {
       <div className="flex items-center gap-4 min-w-[160px] justify-end">
         {user ? (
           <>
+            <Link href={profileLink} className="flex items-center">
+              {profileImage !== null ? (
+                <UserAvatar src={profileImage} size={40} />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+              )}
+            </Link>
             <button
               onClick={async () => {
                 await supabase.auth.signOut();
@@ -171,13 +178,6 @@ export default function Navbar() {
             >
               Logout <FaSignOutAlt size={14} />
             </button>
-            <Link href={profileLink} className="flex items-center">
-              {profileImage !== null ? (
-                <UserAvatar src={profileImage} size={40} />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
-              )}
-            </Link>
           </>
         ) : (
           <>

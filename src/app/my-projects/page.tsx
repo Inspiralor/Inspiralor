@@ -78,7 +78,9 @@ export default function MyProjectsPage() {
           {loading ? (
             <div>Loading...</div>
           ) : projects.length === 0 ? (
-            <div className="text-muted">No projects found.</div>
+            <div className="text-black text-center py-12 text-xs">
+              You haven’t created any projects yet. Start your first project to showcase your creativity!
+            </div>
           ) : (
             <div className="flex flex-col gap-6">
               {projects.map((project) => (
@@ -92,27 +94,29 @@ export default function MyProjectsPage() {
             </div>
           )}
           {/* Pagination Controls */}
-          <div className="flex justify-center items-center gap-2 mt-8">
-            <button
-              className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              aria-label="Previous Page"
-            >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </button>
-            <span className="px-4 py-2 text-black font-bold">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              aria-label="Next Page"
-            >
-              <ChevronRightIcon className="w-5 h-5" />
-            </button>
-          </div>
+          {projects.length > 0 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <button
+                className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                aria-label="Previous Page"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+              </button>
+              <span className="px-4 py-2 text-black font-bold">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                className="p-2 rounded-full bg-gray-200 text-black disabled:opacity-50 flex items-center justify-center"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                aria-label="Next Page"
+              >
+                <ChevronRightIcon className="w-5 h-5" />
+              </button>
+            </div>
+          )}
         </section>
       </main>
     </>

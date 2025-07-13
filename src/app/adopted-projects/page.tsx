@@ -95,8 +95,8 @@ export default function AdoptedProjectsPage() {
             </div>
           </div>
           {adopted.length === 0 ? (
-            <div className="text-center text-muted">
-              You have not adopted any projects yet.
+            <div className="text-black text-center py-12 text-xs">
+              You haven’t adopted any projects yet. Explore open initiatives and find one that inspires you to contribute!
             </div>
           ) : (
             <div className="flex flex-col gap-8">
