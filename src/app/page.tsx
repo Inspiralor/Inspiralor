@@ -22,13 +22,17 @@ function ProjectCard({ project, delay = 0 }: { project: any; delay?: number }) {
       className="rounded-xl bg-card/80 shadow-glass p-5 flex flex-col gap-2 border border-border hover:scale-[1.03] hover:shadow-lg transition-transform backdrop-blur-md cursor-pointer"
       onClick={() => (window.location.href = `/projects/${project.id}`)}
     >
-      {imageFile && (
-        <img
-          src={imageFile.url}
-          alt={project.title}
-          className="w-full h-48 object-cover rounded-t-xl mb-2"
-        />
-      )}
+      <div className="relative w-full h-48 bg-gray-900 rounded-t-xl mb-2 overflow-hidden">
+        {imageFile ? (
+          <img
+            src={imageFile.url}
+            alt={project.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">No Image</div>
+        )}
+      </div>
       <div className="text-xl font-bold text-primary hover:underline mb-1">
         {project.title}
       </div>
