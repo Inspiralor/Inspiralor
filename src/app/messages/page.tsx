@@ -11,8 +11,13 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const [lastReads, setLastReads] = useState<Record<string, string>>({});
-  const [profileImages, setProfileImages] = useState<Record<string, string>>({});
+  const [profileImages, setProfileImages] = useState<Record<string, string>>(
+    {}
+  );
+  // Add state for other user names
+  const [otherUserNames, setOtherUserNames] = useState<Record<string, string>>(
+    {}
+  );
 
   useEffect(() => {
     if (!user) return;
@@ -46,29 +51,24 @@ export default function MessagesPage() {
         latestMessages = Object.values(msgMap);
       }
       // Merge room info with latest message
-      const conversations = rooms.map((room: any) => {
-        const msg = latestMessages.find((m: any) => m.room_id === room.id);
-        return {
-          room_id: room.id,
-          user1_id: room.user1_id,
-          user2_id: room.user2_id,
-          ...msg,
-        };
-      }).filter((c: any) => c.text); // Only show rooms with messages
+      const conversations = rooms
+        .map((room: any) => {
+          const msg = latestMessages.find((m: any) => m.room_id === room.id);
+          return {
+            room_id: room.id,
+            user1_id: room.user1_id,
+            user2_id: room.user2_id,
+            ...msg,
+          };
+        })
+        .filter((c: any) => c.text); // Only show rooms with messages
       // Sort by latest message timestamp
-      conversations.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      conversations.sort(
+        (a: any, b: any) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
       setConversations(conversations);
       setLoading(false);
-      // Fetch last read timestamps for all rooms
-      const { data: reads } = await supabase
-        .from("message_reads")
-        .select("room_id, last_read_timestamp")
-        .eq("user_id", user.id);
-      const lastReads: Record<string, string> = {};
-      (reads || []).forEach((r: any) => {
-        lastReads[r.room_id] = r.last_read_timestamp;
-      });
-      setLastReads(lastReads);
       // Fetch profile images for other users
       const otherUserIds = conversations.map((conv: any) =>
         conv.user1_id === user.id ? conv.user2_id : conv.user1_id
@@ -76,13 +76,16 @@ export default function MessagesPage() {
       if (otherUserIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
-          .select("id, profile_image")
+          .select("id, profile_image, name")
           .in("id", otherUserIds);
         const imgMap: Record<string, string> = {};
+        const nameMap: Record<string, string> = {};
         (profiles || []).forEach((p: any) => {
           imgMap[p.id] = p.profile_image || "/images/Me/me.jpeg";
+          nameMap[p.id] = p.name || "User";
         });
         setProfileImages(imgMap);
+        setOtherUserNames(nameMap);
       }
     };
     fetchConversations();
@@ -101,17 +104,23 @@ export default function MessagesPage() {
       <Navbar />
       <main className="min-h-screen bg-white pt-24 pb-10 text-black">
         <section className="max-w-2xl mx-auto bg-white rounded-xl shadow border p-0">
-          <h1 className="text-2xl font-bold text-black p-6 border-b">Messages</h1>
+          <h1 className="text-2xl font-bold text-black p-6 border-b">
+            Messages
+          </h1>
           {loading ? (
             <div className="p-6 text-center text-muted">Loading...</div>
           ) : conversations.length === 0 ? (
-            <div className="text-muted text-center py-12 text-xs">No messages yet.</div>
+            <div className="text-muted text-center py-12 text-xs">
+              No messages yet.
+            </div>
           ) : (
             <ul className="divide-y">
               {conversations.map((conv, i) => {
                 // The other user is the one that is not the current user
-                const otherId = conv.user1_id === user.id ? conv.user2_id : conv.user1_id;
-                const isOwnMsg = conv.sender_id === user.id;
+                const otherId =
+                  conv.user1_id === user.id ? conv.user2_id : conv.user1_id;
+                // In the conversation list, always show the other user's actual name
+                const otherName = otherUserNames[otherId] || "User";
                 return (
                   <li
                     key={conv.room_id}
@@ -127,21 +136,17 @@ export default function MessagesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-center">
                         <span className="font-semibold text-base truncate">
-                          {isOwnMsg ? "You" : conv.sender_name || "User"}
+                          {otherName}
                         </span>
                         <span className="text-xs text-gray-400 ml-2">
-                          {conv.timestamp ? new Date(conv.timestamp).toLocaleString() : ""}
+                          {conv.timestamp
+                            ? new Date(conv.timestamp).toLocaleString()
+                            : ""}
                         </span>
                       </div>
                       <div className="text-sm text-gray-600 truncate">
                         {conv.text}
                       </div>
-                    </div>
-                    {/* Notification badge for unread messages */}
-                    <div className="ml-2">
-                      {conv.timestamp && (!lastReads[conv.room_id] || new Date(conv.timestamp) > new Date(lastReads[conv.room_id])) ? (
-                        <span className="inline-block w-3 h-3 rounded-full bg-emerald-400" title="New message"></span>
-                      ) : null}
                     </div>
                   </li>
                 );
@@ -152,4 +157,4 @@ export default function MessagesPage() {
       </main>
     </>
   );
-} 
+}
