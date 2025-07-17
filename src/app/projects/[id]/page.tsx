@@ -187,10 +187,10 @@ export default function ProjectDetailPage() {
       <main className="min-h-screen w-full bg-gradient-to-br from-background via-surface to-primary/30 flex flex-col items-center py-10 px-4 pt-24">
         <Navbar />
         <div className="w-full max-w-4xl mx-auto px-4 flex flex-col items-center">
-          <h1 className="text-6xl font-extrabold mb-10 text-primary font-display drop-shadow-lg text-center tracking-tight">
+          <h1 className="text-4xl font-extrabold mb-10 text-primary font-display drop-shadow-lg text-center tracking-tight">
             {project.title}
             {hasAdopted && (
-              <span className="ml-4 px-3 py-1 rounded-full bg-green-600 text-white text-lgs font-semibold align-middle">
+              <span className="ml-4 px-3 py-1 rounded-full bg-green-600 text-white text-base font-semibold align-middle">
                 Adopted
               </span>
             )}
@@ -198,8 +198,8 @@ export default function ProjectDetailPage() {
           {/* Outer border for all content except title */}
           <div className="w-full border-4 border-primary/30 rounded-3xl p-6 bg-transparent flex flex-col items-center">
             {/* Main image and description side by side */}
-            <div className="w-full flex flex-col md:flex-row gap-10 justify-center items-start">
-              {/* Main image and description box */}
+            <div className="w-full flex flex-col md:flex-row gap-10 justify-center items-start mb-8">
+              {/* Main image */}
               <div className="flex flex-col items-center w-full md:w-[340px]">
                 {imageFiles.length > 0 && (
                   <img
@@ -208,52 +208,45 @@ export default function ProjectDetailPage() {
                     className="w-[320px] h-[250px] object-cover border-4 border-white shadow-2xl mb-4 rounded-2xl"
                   />
                 )}
-                {/* Description box under image */}
-                <div className="w-full bg-white/20 border-2 border-white/60 shadow-lg p-8 mb-8 relative">
-                  <div className="absolute inset-0 border-2 border-primary/30 pointer-events-none"></div>
-                  <div className="font-bold text-primary text-lg mb-4">
-                    Description
-                  </div>
-                  <div className="whitespace-pre-line text-sm text-white font-normal leading-relaxed">
-                    {project.description}
-                  </div>
-                </div>
               </div>
               {/* Info box to the right */}
               <div className="flex-1 flex flex-col items-center">
                 <div className="w-full bg-white/20 border-2 border-white/60 shadow-lg p-6 mb-4 relative">
                   <div className="absolute inset-0 border-2 border-primary/30 pointer-events-none"></div>
                   <div className="flex flex-col gap-2">
-                    <div className="flex flex-row gap-4 justify-between items-center">
+                    <div className="flex flex-row items-center mt-2">
                       <span className="font-bold text-base text-primary">
                         Category:
                       </span>
-                      <span className="text-sm text-white font-normal">
+                      <span className="text-sm text-white font-normal pl-2">
                         {project.category}
                       </span>
+                    </div>
+                    <div className="flex flex-row items-center mt-2">
                       <span className="font-bold text-base text-primary">
                         Status:
                       </span>
-                      <span className="text-sm text-white font-normal">
+                      <span className="text-sm text-white font-normal pl-2">
                         {project.status}
                       </span>
                     </div>
-                    <div className="flex flex-row gap-4 justify-between items-center mt-2">
+                    <div className="flex flex-row items-center mt-2">
                       <span className="font-bold text-base text-primary">
                         Tools/Medium:
                       </span>
-                      <span className="text-sm text-white font-normal">
+                      <span className="text-sm text-white font-normal pl-2">
                         {project.tools}
                       </span>
                     </div>
-                    <div className="flex flex-row gap-2 flex-wrap items-center mt-2">
+
+                    <div className="flex flex-row flex-wrap items-center mt-2">
                       <span className="font-bold text-base text-primary">
                         Tags:
                       </span>
                       {project.tags?.map((t) => (
                         <span
                           key={t}
-                          className="inline-block bg-white/40 border border-white/60 text-primary rounded px-2 py-0.5 font-semibold text-xs shadow ml-1"
+                          className="inline-block bg-white/40 border border-white/60 text-primary px-2 py-0.5 font-semibold text-xs shadow ml-1 rounded"
                         >
                           #{t}
                         </span>
@@ -261,6 +254,16 @@ export default function ProjectDetailPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+            {/* Description box (now full width) */}
+            <div className="w-full bg-white/20 border-2 border-white/60 shadow-lg p-8 mb-8 relative">
+              <div className="absolute inset-0 border-2 border-primary/30 pointer-events-none"></div>
+              <div className="font-bold text-primary text-lg mb-4">
+                Description
+              </div>
+              <div className="whitespace-pre-line text-sm text-white font-normal leading-relaxed">
+                {project.description}
               </div>
             </div>
             {/* Why abandoned box */}
