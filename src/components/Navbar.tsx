@@ -9,9 +9,10 @@ import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 
 interface NavbarProps {
   hideGetStarted?: boolean;
+  isTransparent?: boolean;
 }
 
-export default function Navbar({ hideGetStarted = false }: NavbarProps) {
+export default function Navbar({ hideGetStarted = false, isTransparent = false }: NavbarProps) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -57,7 +58,7 @@ export default function Navbar({ hideGetStarted = false }: NavbarProps) {
 
   if (loading) return null;
   return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-black transition-colors px-4 md:px-16 py-3 flex items-center justify-between">
+    <nav className={`fixed top-0 left-0 w-full z-50 transition-colors px-4 md:px-16 py-3 flex items-center justify-between ${isTransparent ? 'bg-transparent' : 'bg-black'}`}>
       {/* Left: Nav Items */}
       <div className="flex items-center gap-5 min-w-[220px]">
         {!user && (
