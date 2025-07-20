@@ -6,6 +6,7 @@ import { useAuth } from "@/components/AuthContext";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/solid";
+import { Suspense } from "react";
 
 const categories = [
   "All",
@@ -38,6 +39,15 @@ type Project = {
   creator_id?: string;
 };
 
+function ProjectsSearchParams({ setSearch }: { setSearch: (search: string) => void }) {
+  const searchParams = useSearchParams();
+  const search = searchParams.get("search") || "";
+  useEffect(() => {
+    setSearch(search);
+  }, [search, setSearch]);
+  return null;
+}
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +56,7 @@ export default function ProjectsPage() {
   const [tag, setTag] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const searchParams = useSearchParams();
-  const search = searchParams.get("search") || "";
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -156,6 +165,9 @@ export default function ProjectsPage() {
 
   return (
     <>
+      <Suspense fallback={null}>
+        <ProjectsSearchParams setSearch={setSearch} />
+      </Suspense>
       <main className="min-h-screen bg-white pb-20 pt-24">
         <section className="max-w-5xl mx-auto py-12 px-4">
           <div className="mb-8">
