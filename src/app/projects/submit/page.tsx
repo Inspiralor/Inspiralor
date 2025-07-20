@@ -30,11 +30,7 @@ type UploadedFile = {
   size: number;
 };
 
-export default function SubmitProjectPage({
-  isEdit = false,
-}: {
-  isEdit?: boolean;
-}) {
+export default function SubmitProjectPage() {
   const { id } = useParams<{ id: string }>();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -87,7 +83,7 @@ export default function SubmitProjectPage({
   }, [router]);
 
   useEffect(() => {
-    if (isEdit && id) {
+    if (id) {
       const fetchProject = async () => {
         const { data } = await supabase
           .from("projects")
@@ -113,7 +109,7 @@ export default function SubmitProjectPage({
       };
       fetchProject();
     }
-  }, [isEdit, id]);
+  }, [id]);
 
   // Update image upload to allow multiple files at once
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -248,7 +244,7 @@ export default function SubmitProjectPage({
       setLoading(false);
       return;
     }
-    if (existing && existing.length > 0 && (!isEdit || existing[0].id !== id)) {
+    if (existing && existing.length > 0 && (!id || existing[0].id !== id)) { // Only check uniqueness if it's an edit
       setError("This title is already used. Please pick another title.");
       setLoading(false);
       return;
@@ -331,7 +327,7 @@ export default function SubmitProjectPage({
       if (!removedDocIdxs.includes(idx)) uploadedFiles.push(doc);
     });
     // Add new docs (already handled by upload loop)
-    if (isEdit && id) {
+    if (id) {
       // Update
       const { error: updateError } = await supabase
         .from("projects")
