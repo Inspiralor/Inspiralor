@@ -40,7 +40,7 @@ export default function AdoptedProjectsPage() {
         setAdopted(adoptedProjects || []);
         // Fetch creator full UUIDs
         const creatorIds = Array.from(new Set((adoptedProjects || []).map((p: any) => p.creator_id).filter(Boolean)));
-        let creatorProfiles: { id: string; unique_id: string }[] = [];
+        let creatorProfiles: { id: string }[] = [];
         if (creatorIds.length > 0) {
           const { data: profiles } = await supabase
             .from("profiles")
@@ -105,7 +105,6 @@ export default function AdoptedProjectsPage() {
                   key={p.id}
                   project={p}
                   adopted={true}
-                  showAdopterNames={true}
                   contactCreatorUrl={creatorMap[p.id] ? `/chat/${creatorMap[p.id]}` : undefined}
                 />
               ))}
