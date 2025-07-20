@@ -7,7 +7,11 @@ import { useRouter } from "next/navigation";
 import { UserAvatar } from "@/components/UserAvatar";
 import { FaSignInAlt, FaSignOutAlt } from "react-icons/fa";
 
-export default function Navbar() {
+interface NavbarProps {
+  hideGetStarted?: boolean;
+}
+
+export default function Navbar({ hideGetStarted = false }: NavbarProps) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -141,12 +145,14 @@ export default function Navbar() {
             >
               Login <FaSignInAlt size={14} />
             </button>
-            <button
-              onClick={() => router.push("/signup")}
-              className="bg-emerald-400 hover:bg-emerald-500 transition-colors text-white px-3 py-2 rounded text-sm font-semibold shadow-md"
-            >
-              Get Started
-            </button>
+            {!hideGetStarted && (
+              <button
+                onClick={() => router.push("/signup")}
+                className="bg-emerald-400 hover:bg-emerald-500 transition-colors text-white px-3 py-2 rounded text-sm font-semibold shadow-md"
+              >
+                Get Started
+              </button>
+            )}
           </>
         )}
       </div>
