@@ -231,7 +231,6 @@ export default function ProjectsPage() {
                         <ProjectCard
                           project={p}
                           delay={0.05 * i}
-                          adopters={adopters}
                           adopted={adopted}
                           contactCreatorUrl={contactCreatorUrl}
                         />
