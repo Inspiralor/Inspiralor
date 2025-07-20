@@ -2,5 +2,5 @@
 import SubmitProjectPage from "../../submit/page";
 
 export default function EditProjectPage() {
-  return <SubmitProjectPage isEdit={true} />;
+  return <SubmitProjectPage />;
 } 
