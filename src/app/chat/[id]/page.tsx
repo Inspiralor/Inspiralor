@@ -73,39 +73,41 @@ export default function DirectChatPage() {
             .single();
           room = newRoom;
         }
-        setRoomId(room.id);
-        if (!socket) {
-          socket = io();
-        }
-        socket.emit("join", room.id);
-        // Fetch chat history from Supabase
-        const { data: messages } = await supabase
-          .from("messages")
-          .select("sender_name, text, timestamp, sender_id, room_id")
-          .eq("room_id", room.id)
-          .order("timestamp", { ascending: true });
-        if (messages) {
-          setMessages(
-            messages.map((m: any) => ({
-              user: m.sender_name,
-              text: m.text,
-              timestamp: m.timestamp,
-              sender_id: m.sender_id,
-              room_id: m.room_id,
-            }))
+        if (room) {
+          setRoomId(room.id);
+          if (!socket) {
+            socket = io();
+          }
+          socket.emit("join", room.id);
+          // Fetch chat history from Supabase
+          const { data: messages } = await supabase
+            .from("messages")
+            .select("sender_name, text, timestamp, sender_id, room_id")
+            .eq("room_id", room.id)
+            .order("timestamp", { ascending: true });
+          if (messages) {
+            setMessages(
+              messages.map((m: any) => ({
+                user: m.sender_name,
+                text: m.text,
+                timestamp: m.timestamp,
+                sender_id: m.sender_id,
+                room_id: m.room_id,
+              }))
+            );
+          }
+          socket.on(
+            "chat message",
+            (msg: { user: string; text: string; room_id: string; timestamp?: string; sender_id?: string }) => {
+              if (msg.room_id === room.id) {
+                setMessages((prev) => {
+                  if (prev.some(m => m.timestamp === msg.timestamp && m.sender_id === msg.sender_id)) return prev;
+                  return [...prev, { user: msg.user, text: msg.text, timestamp: msg.timestamp, sender_id: msg.sender_id }];
+                });
+              }
+            }
           );
         }
-        socket.on(
-          "chat message",
-          (msg: { user: string; text: string; room_id: string; timestamp?: string; sender_id?: string }) => {
-            if (msg.room_id === room.id) {
-              setMessages((prev) => {
-                if (prev.some(m => m.timestamp === msg.timestamp && m.sender_id === msg.sender_id)) return prev;
-                return [...prev, { user: msg.user, text: msg.text, timestamp: msg.timestamp, sender_id: msg.sender_id }];
-              });
-            }
-          }
-        );
       })();
       return () => {
         if (roomId) socket?.emit("leave", roomId);
