@@ -5,20 +5,24 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import { ErrorMessage } from "@/components/ErrorMessage";
+import { Suspense } from "react";
+
+function LoginFormWithParams({ setMessage }: { setMessage: (msg: string) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("message") === "login_required") {
+      setMessage("Please sign in to submit a project.");
+    }
+  }, [searchParams, setMessage]);
+  return null;
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    if (searchParams.get("message") === "login_required") {
-      setMessage("Please sign in to submit a project.");
-    }
-  }, [searchParams]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +49,9 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7 }}
         >
+          <Suspense fallback={null}>
+            <LoginFormWithParams setMessage={setMessage} />
+          </Suspense>
           <h1 className="text-3xl font-bold mb-2 text-primary font-display">
             Sign In
           </h1>
